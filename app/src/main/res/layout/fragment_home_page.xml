@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="0dp"
+    android:background="@android:color/white"
+    android:id="@+id/homepage">
+
+    <HorizontalScrollView
+        android:id="@+id/horizontalscroller"
+        android:layout_width="370dp"
+        android:layout_height="297dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="330dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="67dp"
+        android:background="@drawable/spotify_green_icon"
+        android:scrollbars="horizontal">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/album_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="visible" />
+
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="203dp"
+        android:layout_height="230dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="185dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="7dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            android:id="@+id/recent5">
+
+            <ImageView
+                android:id="@+id/recentimg5"
+                android:layout_width="57dp"
+                android:layout_height="54dp"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext5"
+                android:layout_width="127dp"
+                android:layout_height="54dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="59dp"
+            android:orientation="horizontal"
+            android:id="@+id/recent6">
+
+            <ImageView
+                android:id="@+id/recentimg6"
+                android:layout_width="58dp"
+                android:layout_height="55dp"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext6"
+                android:layout_width="129dp"
+                android:layout_height="55dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:orientation="horizontal"
+            android:id="@+id/recent7">
+
+            <ImageView
+                android:id="@+id/recentimg7"
+                android:layout_width="58dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext7"
+                android:layout_width="126dp"
+                android:layout_height="51dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            android:id="@+id/recent8">
+
+            <ImageView
+                android:id="@+id/recentimg8"
+                android:layout_width="59dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext8"
+                android:layout_width="126dp"
+                android:layout_height="match_parent"
+                android:text="TextView" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/recentlayoutset1"
+        android:layout_width="184dp"
+        android:layout_height="232dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="196dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/recent1"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:clickable="true"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="57dp"
+                android:layout_height="54dp"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext1"
+                android:layout_width="112dp"
+                android:layout_height="54dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/recent2"
+            android:layout_width="match_parent"
+            android:layout_height="59dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="58dp"
+                android:layout_height="55dp"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext2"
+                android:layout_width="107dp"
+                android:layout_height="55dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/recent3"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="58dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext3"
+                android:layout_width="106dp"
+                android:layout_height="51dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/recent4"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="59dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/button_background" />
+
+            <TextView
+                android:id="@+id/recenttext4"
+                android:layout_width="110dp"
+                android:layout_height="match_parent"
+                android:text="TextView" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:id="@+id/artist_details_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="379dp"
+        android:layout_height="184dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="280dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="230dp"
+        android:text="Albums"
+        android:textSize="35dp"
+        android:textStyle="bold" />
+</RelativeLayout>

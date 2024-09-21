@@ -1,0 +1,31 @@
+package com.example.partyplaylist.models
+
+import com.example.partyplaylist.data.User
+import com.google.gson.annotations.SerializedName
+
+data class PlaylistResponse(
+    val id: String,
+    val name: String,
+    val description: String,
+    val external_urls: ExternalUrls,
+    val href: String,
+    val images: List<Image>,
+    val owner: User,
+    val public: Boolean,
+    val snapshot_id: String,
+    val tracks: PlaylistTracks,
+    val type: String,
+    val uri: String,
+    val playlist: List<Playlist>
+)
+data class PlaylistRequest(
+    val name: String,
+    val description: String,
+    val public: Boolean,
+    val collaborative: Boolean
+)
+data class PlaylistCreateRequest(
+    val name: String,
+    val description: String,
+    val public: Boolean
+)

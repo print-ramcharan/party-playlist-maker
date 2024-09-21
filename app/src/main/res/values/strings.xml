@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">PartyPlaylist</string>
+    <string name="title_activity_login_multi_activity.java">LoginMultiActivity.java</string>
+    <string name="title_activity_login_multi_activity.kt">LoginMultiActivity.kt</string>
+    <string name="redirect_scheme_name">http</string>
+    <string name="redirect_host_name">localhost</string>
+    <string name="redirect_path">/callback</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="next_button_desc">next</string>
+    <string name="music_icon">music\n</string>
+    <string name="play_pause">play pause</string>
+    <string name="previous_button_desc">previous song</string>
+</resources>

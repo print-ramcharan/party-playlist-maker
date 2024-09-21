@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "495947737642",
+    "project_id": "party-playlist-maker",
+    "storage_bucket": "party-playlist-maker.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495947737642:android:3c836780bb2ee159487153",
+        "android_client_info": {
+          "package_name": "com.example.partyplaylist"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "495947737642-6rcgd3ff3jhubnbt1i23jpf0fmp3pn0r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.partyplaylist",
+            "certificate_hash": "18521b8cccd1b9c131e7c5e650356f771cd589cc"
+          }
+        },
+        {
+          "client_id": "495947737642-o6upv59a55rmh7mt7glmprhabnkqrsmq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIL0BnniD4iU5PT65gU7yiD6786yY4uME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "495947737642-o6upv59a55rmh7mt7glmprhabnkqrsmq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

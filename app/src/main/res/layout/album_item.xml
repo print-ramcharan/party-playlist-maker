@@ -1,0 +1,26 @@
+<!-- res/layout/album_item.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="125dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@color/black">
+
+    <ImageView
+        android:id="@+id/album_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/spotify_green_icon"/>
+
+    <TextView
+        android:id="@+id/album_name"
+        android:layout_width="101dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="4dp"
+        android:scrollbars="horizontal"
+        android:text="ur mom"
+        android:textAlignment="textStart"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+</LinearLayout>
