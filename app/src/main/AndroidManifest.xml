@@ -39,10 +39,9 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="${redirectSchemeName}"
-                    android:host="${redirectHostName}"
-                    android:path="${redirectPath}" />
+
+                <data android:scheme="partyplaylist" android:host="callback" />
+
             </intent-filter>
         </activity>
         <service

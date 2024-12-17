@@ -30,7 +30,7 @@ public class SpotifyLoginActivity extends AppCompatActivity {
     private static final String AUTH_URL = "https://accounts.spotify.com/authorize";
     private static final String CLIENT_ID = "9e55757a811a432c88d740c04711f5a0";
     private static final String CLIENT_SECRET = "d38dcbead2224dc9a50b6a978e83c295"; // Add your client secret here
-    private static final String REDIRECT_URI = "http://localhost/callback";
+    private static final String REDIRECT_URI = "partyplaylist://callback";
     private static final String RESPONSE_TYPE = "code";
     private static final String SCOPE = "user-read-email user-library-read user-read-private user-library-modify user-top-read user-read-recently-played user-follow-read user-follow-modify user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private app-remote-control streaming user-read-playback-position user-read-currently-playing";
 
@@ -75,12 +75,23 @@ public class SpotifyLoginActivity extends AppCompatActivity {
     }
 
     private void startAuthFlow() {
+        Intent logoutIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://accounts.spotify.com/logout"));
+        startActivity(logoutIntent);
+
         String url = AUTH_URL + "?client_id=" + CLIENT_ID +
                 "&response_type=" + RESPONSE_TYPE +
                 "&redirect_uri=" + Uri.encode(REDIRECT_URI) +
-                "&scope=" + Uri.encode(SCOPE);
+                "&scope=" + Uri.encode(SCOPE)+
+                "&show_dialog=true";
+        android.webkit.CookieManager.getInstance().removeAllCookies(null);
+        android.webkit.CookieManager.getInstance().flush();
+
+
+
         Log.d("SpotifyAuth", "Auth URL: " + url); // Add this line
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Start fresh activity
+
         startActivity(intent);
     }
 

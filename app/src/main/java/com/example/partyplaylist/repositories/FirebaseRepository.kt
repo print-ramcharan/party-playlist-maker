@@ -444,7 +444,7 @@ fun getAlbum(albumId: String, callback: (Album?) -> Unit) {
             return
         }
 
-        val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+        val userPlaylistsRef = userRef.child("playlists")
         userPlaylistsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val playlists = snapshot.children.mapNotNull { it.getValue(Playlist::class.java) }
