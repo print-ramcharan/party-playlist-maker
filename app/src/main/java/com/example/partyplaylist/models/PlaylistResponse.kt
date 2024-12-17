@@ -16,8 +16,14 @@ data class PlaylistResponse(
     val tracks: PlaylistTracks,
     val type: String,
     val uri: String,
-    val playlist: List<Playlist>
+    val items: List<Playlist>
+) {
+    val playlists: List<Playlist> = emptyList()
+}
+data class PlaylistResponse2(
+    val playlists: List<Playlist>
 )
+
 data class PlaylistRequest(
     val name: String,
     val description: String,

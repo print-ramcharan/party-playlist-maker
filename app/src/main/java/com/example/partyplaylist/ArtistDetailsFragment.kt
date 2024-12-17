@@ -49,7 +49,7 @@ class ArtistDetailsFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_artist_details, container, false)
 
         // Initialize Firebase repository
-        firebaseRepository = FirebaseRepository()
+        firebaseRepository = FirebaseRepository(requireContext())
 
         // Retrieve the artist name from the arguments
         artistName = arguments?.getString(ARG_ARTIST_NAME) ?: ""

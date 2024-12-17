@@ -9,7 +9,7 @@ data class User(
     @SerializedName("display_name") val displayName: String? = "",
     @SerializedName("email") val email: String? = "",
     @SerializedName("images") val images: List<Image>? = emptyList(),
-    @SerializedName("followers") val followers: Followers = Followers()
+    @SerializedName("followers") val followers : Followers = Followers()
 )
 
 data class Followers(

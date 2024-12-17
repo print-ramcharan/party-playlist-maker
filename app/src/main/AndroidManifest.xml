@@ -48,8 +48,13 @@
         <service
             android:name=".services.SpotifySyncService"
             android:exported="false"/>
-        <service android:name=".services.MediaPlayerService"
-            android:exported="false"/>
+        <service
+            android:name=".services.MediaPlayerService"
+            android:foregroundServiceType="mediaPlayback"
+            android:enabled="true"
+            android:exported="false"
+            tools:ignore="ForegroundServicePermission" />
+
 
     </application>
 

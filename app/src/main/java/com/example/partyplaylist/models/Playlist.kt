@@ -18,10 +18,19 @@ data class Playlist(
     @SerializedName("tracks") val tracks: PlaylistTracks = PlaylistTracks(),
     @SerializedName("type") val type: String = "",
     @SerializedName("uri") val uri: String = "",
-    @SerializedName("collaborators") val collaborators: List<User> = emptyList()
-)
-{
+    @SerializedName("collaborators") val collaborators: List<User> = emptyList(),
+    @SerializedName("totalVotes") val totalVotes: Int = 0,
+    @SerializedName("lastModified") val lastModified: Long = System.currentTimeMillis()
+) {
 
+    fun getTopRankedTracks(): List<PlaylistTrack> {
+        return this.tracks.items.sortedByDescending { it.voteCount }
+    }
+
+
+    fun getRecentlyAddedTracks(): List<PlaylistTrack> {
+        return this.tracks.items.sortedByDescending { it.lastUpdated }
+    }
 }
 
 data class PlaylistTracks(
@@ -29,13 +38,22 @@ data class PlaylistTracks(
 )
 
 data class PlaylistTrack(
-    @SerializedName("track") val track: Song = Song(),
-    @SerializedName("voteCount") val votecount: Int = 0
-
+    @SerializedName("track") val track: Track = Track(),
+    @SerializedName("voteCount") var voteCount: Int = 0,
+    @SerializedName("addedBy") val addedBy: User = User(),
+    @SerializedName("addedCount") val addedCount: Int = 0,
+    @SerializedName("lastUpdated") val lastUpdated: Long = System.currentTimeMillis()
 )
-//data class PlaylistResponse(
-//    @SerializedName("items") val playlists: List<Playlist>
-//)
+
 data class TracksResponse(
     @SerializedName("total") val total: Int
+)
+
+
+
+
+data class User(
+    @SerializedName("id") val id: String = "",
+    @SerializedName("name") val name: String = "",
+    @SerializedName("profilePicture") val profilePicture: String? = null
 )

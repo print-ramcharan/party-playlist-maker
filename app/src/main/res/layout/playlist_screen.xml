@@ -1,0 +1,16 @@
+<!-- res/layout/playlist_screen.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- RecyclerView for displaying playlist tracks -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playlist_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:scrollbars="vertical"
+        android:background="@color/white"/>
+</LinearLayout>

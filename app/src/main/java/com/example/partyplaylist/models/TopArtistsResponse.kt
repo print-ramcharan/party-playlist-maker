@@ -1,5 +1,6 @@
 package com.example.partyplaylist.models
 
+import AlbumResponse
 import com.example.partyplaylist.data.Song
 import com.google.gson.annotations.SerializedName
 import org.json.JSONArray
@@ -19,7 +20,6 @@ data class Artist(
     @SerializedName("followers") val followers: Followers = Followers(0),
     @SerializedName("type") val type: String = "",
     @SerializedName("Songs") var Songs: List<Song> = emptyList()
-
 ) {
     // Default constructor required for Firebase
     constructor(
@@ -30,29 +30,7 @@ data class Artist(
         popularity: Int,
         externalUrls: ExternalUrls,
         followers: com.example.partyplaylist.data.Followers
-    ) : this("", "", emptyList(), emptyList(), 0, ExternalUrls(""), Followers(0), "",emptyList())
-
-//    constructor(
-//        id: String,
-//        name: String,
-//        genres: List<String>,
-//        images: List<Image>,
-//        popularity: Int,
-//        externalUrls: ExternalUrls,
-//        followers: Followers,
-//        type: String,
-//        Songs: List<Track>
-//    ) : this(
-//        id = id,
-//        name = name,
-//        genres = genres,
-//        images = images,
-//        popularity = popularity,
-//        externalUrls = externalUrls,
-//        followers = followers,
-//        type = type,
-//        Songs = Songs
-//    )
+    ) : this("", "", emptyList(), emptyList(), 0, ExternalUrls(""), Followers(0), "", emptyList())
 
     constructor(
         id: String,
@@ -64,7 +42,7 @@ data class Artist(
         followers: com.example.partyplaylist.trail.Followers,
         type: String,
         Songs: Any
-    ) : this( )
+    ) : this()
 
     constructor(
         id: String,
@@ -76,9 +54,7 @@ data class Artist(
         followers: com.example.partyplaylist.data.Followers,
         type: String,
         Songs: String
-    ) : this(
-    )
-
+    ) : this()
 }
 
 data class Image(
@@ -94,7 +70,14 @@ data class ExternalUrls(
 data class Followers(
     @SerializedName("total") val total: Int = 0
 )
-
-data class SearchResponse(
-    val artists: TopArtistsResponse?
+data class ArtistResponse(
+    @SerializedName("items") val items: List<Artist>
 )
+//data class SearchResponse(
+//    @SerializedName("tracks") val tracks: TrackResponse?,
+//    @SerializedName("albums") val albums: AlbumResponse?,
+//    @SerializedName("artists") val artists: ArtistResponse?
+//)
+
+
+

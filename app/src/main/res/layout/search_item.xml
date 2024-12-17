@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    tools:context=".SearchFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Image on the left side -->
+        <ImageView
+            android:id="@+id/albumImage"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Album image"
+            android:scaleType="centerCrop" />
+
+        <!-- Song details -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Song Title (Bold) -->
+            <TextView
+                android:id="@+id/songTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Song Title"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Artist Name -->
+            <TextView
+                android:id="@+id/songArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Artist Name"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
+
+            <!-- Album Name -->
+            <TextView
+                android:id="@+id/songAlbum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Album Name"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

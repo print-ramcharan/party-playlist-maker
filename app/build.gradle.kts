@@ -114,6 +114,8 @@ dependencies {
         exclude(group = "com.github.bumptech.glide", module = "annotations")
     }
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation("com.android.volley:volley:1.2.1")
+    implementation("androidx.test.espresso:espresso-core:3.6.1")
     kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     //notificationcompat
@@ -134,5 +136,14 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation ("androidx.compose.ui:ui-test-junit4:1.5.0")
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation ("com.squareup.moshi:moshi:1.12.0")
+    implementation ("com.squareup.moshi:moshi-kotlin:1.12.0")
+
+    implementation ("com.squareup.picasso:picasso:2.8")
 
 }

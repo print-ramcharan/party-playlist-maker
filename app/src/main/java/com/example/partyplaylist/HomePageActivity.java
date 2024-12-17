@@ -79,13 +79,13 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
-        songProgressBar = findViewById(R.id.songProgressBar);
+//        songProgressBar = findViewById(R.id.songProgressBar);
         initializeViews();
         setupViewPagerAndBottomNavigation();
         setupServiceConnections();
         setupListeners();
 //        setupSeekBar();
-         songTitleTextView = findViewById(R.id.song_title);
+        songTitleTextView = findViewById(R.id.song_title);
 
         songTitleTextView.setOnSwipeListener(new SwipeableTextView.OnSwipeListener() {
             @Override
@@ -137,8 +137,8 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
                 }
 
                 if (songTitle != null) {
-                    songTitle.setBackgroundColor(getResources().getColor(android.R.color.white));
-                    songTitle.setTextColor(getResources().getColor(android.R.color.black));
+                    songTitle.setBackgroundColor(getResources().getColor(android.R.color.black));
+                    songTitle.setTextColor(getResources().getColor(android.R.color.white));
                 }
             }
         });
@@ -322,6 +322,7 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
 
     @Override
     public void onAlbumSelected(@Nullable String albumId) {
+        Log.d(TAG , " the album id is " +albumId);
         Fragment albumTracksFragment = AlbumTracksFragment.newInstance(albumId);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

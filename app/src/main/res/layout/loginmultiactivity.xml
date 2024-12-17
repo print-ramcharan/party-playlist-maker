@@ -3,141 +3,113 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
+
+    <!-- ImageView at the Top Center -->
     <ImageView
         android:id="@+id/imageView3"
         android:layout_width="148dp"
         android:layout_height="153dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="130dp"
-        android:layout_marginTop="55dp"
-        android:layout_marginEnd="132dp"
-        android:layout_marginBottom="522dp"
-        android:scaleX="1"
-        android:scaleY="1"
-        android:src="@drawable/ic_action_name_green" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:src="@drawable/ic_action_name_green"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitCenter" />
 
+    <!-- TextView Below the Image -->
     <TextView
         android:id="@+id/textView"
-        android:layout_width="347dp"
-        android:layout_height="121dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="41dp"
-        android:layout_marginTop="256dp"
-        android:layout_marginEnd="23dp"
-        android:layout_marginBottom="353dp"
-        android:text="Millions of songs.  Free on Spotify."
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageView3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:text="Millions of songs. Free on Spotify."
         android:textColor="#F4F4F4"
-        android:textSize="35dp"
-        android:textStyle="bold" />
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center" />
 
+    <!-- Login Button Positioned Above the Other Buttons -->
     <Button
         android:id="@+id/loginbutton"
-        android:layout_width="109dp"
+        android:layout_width="70dp"
         android:layout_height="50dp"
-
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="148dp"
-        android:layout_marginTop="670dp"
-        android:layout_marginEnd="154dp"
-        android:layout_marginBottom="11dp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@id/buttonsContainer"
+        android:layout_marginBottom="20dp"
         android:background="@color/black"
         android:text="Log in"
-        android:textAllCaps="false"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textAllCaps="false" />
 
+    <!-- LinearLayout with Other Buttons at the Bottom -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="257dp"
-
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
+        android:id="@+id/buttonsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="39dp"
-        android:layout_marginTop="408dp"
-        android:layout_marginEnd="33dp"
-        android:layout_marginBottom="66dp"
-        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="60dp"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp">
+        android:gravity="center_horizontal">
 
+        <!-- Sign up Button -->
         <Button
             android:id="@+id/button4"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="60dp"
             android:background="@drawable/signupbackground"
-            android:foregroundTint="@color/black"
             android:text="Sign up free"
-            android:textAlignment="center"
-            android:textAllCaps="false"
             android:textColor="@color/black"
-            android:textStyle="normal" />
+            android:textAllCaps="false" />
 
+        <!-- Space between Buttons -->
         <Space
             android:layout_width="match_parent"
-            android:layout_height="5dp" />
+            android:layout_height="10dp" />
 
+        <!-- Continue with Phone Button -->
         <Button
             android:id="@+id/button13"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="60dp"
             android:background="@drawable/button_background"
             android:drawableLeft="@drawable/baseline_phone_android_24"
-            android:foregroundTint="@color/white"
             android:text="Continue with Phone Number"
-            android:textAlignment="center"
-            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textStyle="normal" />
+            android:textAllCaps="false" />
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="5dp" />
+            android:layout_height="10dp" />
 
+        <!-- Continue with Google Button -->
         <Button
             android:id="@+id/button14"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="60dp"
             android:background="@drawable/button_background"
-            android:foregroundTint="@color/white"
             android:drawableLeft="@drawable/google_icon"
             android:text="Continue with Google"
-            android:textAlignment="center"
-            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textStyle="normal" />
+            android:textAllCaps="false" />
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="5dp" />
+            android:layout_height="10dp" />
 
+        <!-- Continue with Facebook Button -->
         <Button
             android:id="@+id/button15"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="60dp"
             android:background="@drawable/button_background"
             android:drawableLeft="@drawable/facebook_icon"
             android:text="Continue with Facebook"
-            android:textAlignment="center"
-            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textStyle="normal" />
-
+            android:textAllCaps="false" />
 
     </LinearLayout>
+
 </RelativeLayout>

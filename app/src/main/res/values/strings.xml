@@ -14,4 +14,6 @@
     <string name="music_icon">music\n</string>
     <string name="play_pause">play pause</string>
     <string name="previous_button_desc">previous song</string>
+    <string name="vote_button">vote count</string>
+    <string name="track_image">track image\n</string>
 </resources>

@@ -1,0 +1,39 @@
+<!-- res/layout/playlist_track_item.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Track Name -->
+    <TextView
+        android:id="@+id/track_name"
+        android:text="Track Name"
+        android:textSize="16sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Artist Name -->
+    <TextView
+        android:id="@+id/track_artist"
+        android:text="Artist Name"
+        android:textSize="14sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Vote Count -->
+    <TextView
+        android:id="@+id/vote_count"
+        android:text="0"
+        android:textSize="14sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Vote Button -->
+    <Button
+        android:id="@+id/vote_button"
+        android:text="Vote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

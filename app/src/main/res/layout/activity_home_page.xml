@@ -22,73 +22,73 @@
     <LinearLayout
         android:id="@+id/bottom_sheet"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="75dp"
         android:orientation="vertical"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomnavigationview"
+        android:padding="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomnavigationview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:background="@color/black">
+        android:background="@android:color/transparent">
 
-        <!-- Player Controls with Album Art, Song Title, and Play/Pause Button -->
-        <LinearLayout
+        <!-- CardView for Boxed Design -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:id="@+id/player_bottom"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:id="@+id/player_card"
+            android:backgroundTint="@color/black"> <!-- Default color, set dynamically in code -->
 
-            <ImageView
-                android:id="@+id/album_art"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/spotify_green_icon"
-                android:layout_marginEnd="8dp" />
+            <!-- Player Controls with Album Art, Song Title, and Play/Pause Button -->
+            <LinearLayout
+                android:id="@+id/player_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="8dp">
 
-            <!-- Song Title -->
-            <com.example.partyplaylist.SwipeableTextView
-                android:id="@+id/song_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="8dp"
-                android:ellipsize="marquee"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:singleLine="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:scrollHorizontally="true"
-                android:text="Song Title"
-                android:textSize="18sp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/album_art"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginEnd="8dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/spotify_green_icon" />
 
-            <!-- Play/Pause Button -->
-            <ImageButton
-                android:id="@+id/play_pause_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_play_arrow"
-                android:contentDescription="@string/play_pause"
-                android:background="?attr/selectableItemBackground"
-                android:padding="8dp"
-                android:clickable="true"
-                android:focusable="true"/>
-        </LinearLayout>
+                <!-- Song Title -->
+                <com.example.partyplaylist.SwipeableTextView
+                    android:id="@+id/song_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="marquee"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:padding="8dp"
+                    android:scrollHorizontally="true"
+                    android:singleLine="true"
+                    android:text="Song Title"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-        <!-- Progress Bar (Non-Operable) -->
-        <ProgressBar
-            android:id="@+id/songProgressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:max="100"
-            android:progress="0"
-            android:layout_marginTop="3dp"
-            android:indeterminateDrawable="@drawable/seekbar_progress"
-            android:visibility="visible"/>
+                <!-- Play/Pause Button -->
+                <ImageButton
+                    android:id="@+id/play_pause_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:contentDescription="@string/play_pause"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_play_arrow" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 
     <!-- Bottom Navigation View -->
@@ -96,8 +96,12 @@
         android:id="@+id/bottomnavigationview"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@color/bottom_nav_background"
+        app:itemIconTint="@drawable/bottom_nav_icon_selector"
+        app:itemTextColor="@drawable/bottom_nav_text_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_navigation_menu"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

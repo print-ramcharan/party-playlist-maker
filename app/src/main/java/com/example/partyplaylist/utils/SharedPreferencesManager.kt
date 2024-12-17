@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.partyplaylist.data.Followers
 import com.example.partyplaylist.data.User
 import com.example.partyplaylist.models.Image
 
@@ -33,7 +32,8 @@ object SharedPreferencesManager {
             apply()
         }
     }
-    fun getUserProfile(context: Context): User? {
+    @JvmStatic
+    fun  getUserProfile(context: Context): User? {
         val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         val id = prefs.getString("user_id", null) ?: return null
@@ -94,4 +94,25 @@ object SharedPreferencesManager {
         val sharedPreferences = context.getSharedPreferences("SpotifyPrefs", Context.MODE_PRIVATE)
         return sharedPreferences.getLong("token_expiry", 0)
     }
+    @JvmStatic
+     fun  getUserId(context: Context): String? {
+        val prefs: SharedPreferences =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString("user_id", null)
+    }
+
+    @JvmStatic
+    fun getUserName(context: Context): String? {
+        val prefs: SharedPreferences =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString("user_name", null) // Return the saved user name
+    }
+
+    @JvmStatic
+    fun clearUserData(context: Context) {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().clear().apply() // Clear all stored user data
+        Log.d("SharedPreferencesManage", "Cleared user data")
+    }
+
 }

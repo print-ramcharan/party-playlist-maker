@@ -4,6 +4,7 @@ import AlbumResponse
 import RecentlyPlayedResponse
 import com.example.partyplaylist.models.*
 import com.example.partyplaylist.data.User
+import com.example.partyplaylist.models.data.SearchResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -72,5 +73,19 @@ interface SpotifyService {
         @Header("Authorization") authHeader: String,
         @Body playlistCreateRequest: PlaylistCreateRequest
     ): Call<PlaylistResponse>
+    @GET("v1/me/albums")
+    fun getSavedAlbums(
+        @Header("Authorization") authHeader: String
+    ): Call<List<Album>>
+    @GET("v1/search")
+    suspend fun searchSpotify(
+        @Query("q") query: String,
+        @Query("type") type: String = "track,album,artist", // search tracks, albums, and artists
+        @Query("limit") limit: Int = 10,
+        @Header("Authorization") authHeader: String
+    ): retrofit2.Response<SearchResponse>
+
+
+
 }
 

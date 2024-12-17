@@ -48,7 +48,7 @@ class AlbumTracksFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_album_tracks, container, false)
 
         // Initialize Firebase repository
-        firebaseRepository = FirebaseRepository()
+        firebaseRepository = FirebaseRepository(requireContext())
 
         // Retrieve the album ID from the arguments
         albumId = arguments?.getString(ARG_ALBUM_ID).orEmpty()

@@ -20,5 +20,13 @@ data class Track(
     @SerializedName("track_number") val trackNumber: Int? = null,
     @SerializedName("type") val type: String? = null,
     @SerializedName("uri") val uri: String? = null,
+    @SerializedName("albumArtUrl") val albumArtUrl: String? = null
 
+)
+data class LikedSongsResponse(
+    val items: List<LikedSong>
+)
+
+data class LikedSong(
+    val track: Track
 )

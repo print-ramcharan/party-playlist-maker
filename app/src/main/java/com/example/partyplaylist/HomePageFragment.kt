@@ -79,7 +79,7 @@ class HomePageFragment : Fragment() {
         _binding = FragmentHomePageBinding.inflate(inflater, container, false)
         val view = binding.root
 
-        firebaseRepository = FirebaseRepository()
+        firebaseRepository = FirebaseRepository(this.requireContext())
 
         // Initialize RecyclerView for albums
         albumRecyclerView = binding.albumRecyclerview
@@ -278,4 +278,3 @@ class HomePageFragment : Fragment() {
         _binding = null
     }
 }
-
