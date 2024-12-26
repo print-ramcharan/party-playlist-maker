@@ -31,6 +31,7 @@ class SpotifySyncService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("SpotifySyncService", "Service started")
+//       firebaseRepository.saveUserData()
         fetchAndSaveData()
         fetchAndSaveData2()
         return START_NOT_STICKY
@@ -45,6 +46,7 @@ class SpotifySyncService : Service() {
                 SharedPreferencesManager.saveUserProfile(this, user)
 
                 // Proceed with fetching other data after user profile is saved
+//                firebaseRepository.saveUserData(user.id)
                 fetchAndSaveTopArtists(user.id)
                 fetchAndSaveTopTracks(user.id)
                 fetchAndSavePlaylists(user.id)

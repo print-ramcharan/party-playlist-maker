@@ -19,6 +19,8 @@
         android:queryHint="Search playlists" />
 
     <!-- RecyclerView for Displaying Playlists -->
+
+    <!-- Floating Action Button for Creating Playlist -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlists_recycler_view"
         android:layout_width="match_parent"
@@ -26,13 +28,14 @@
         android:layout_above="@id/create_playlist_fab"
         android:layout_below="@id/search_view"
         android:layout_alignParentBottom="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="-2dp"
         android:clipToPadding="false"
         android:padding="8dp"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
         android:scrollbars="vertical" />
 
-    <!-- Floating Action Button for Creating Playlist -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/create_playlist_fab"
         android:layout_width="wrap_content"

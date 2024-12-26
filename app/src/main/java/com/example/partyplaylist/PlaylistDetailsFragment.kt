@@ -6,16 +6,21 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.partyplaylist.R
+import com.bumptech.glide.Glide
 import com.example.partyplaylist.adapters.PlaylistTracksAdapter
 import com.example.partyplaylist.models.PlaylistTrack
 import com.example.partyplaylist.data.User
+import com.example.partyplaylist.models.Playlist
 import com.example.partyplaylist.models.PlaylistResponse
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.utils.SharedPreferencesManager
+import com.example.partyplaylist.utils.SharedPreferencesManager.getUserId
 import com.example.partyplaylist.utils.TokenManager
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +50,8 @@ class PlaylistDetailFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.playlist_screen, container, false)
         val recyclerView = view.findViewById<RecyclerView>(R.id.playlist_recycler_view)
+//        val playlistImage = view.findViewById<ImageView>(R.id.playlist_image)
+//        val playlistNameTextView = view.findViewById<TextView>(R.id.playlist_title)
 
         playlistTracksAdapter = PlaylistTracksAdapter(tracks) { track ->
             onVoteClicked(track)
@@ -68,7 +75,7 @@ class PlaylistDetailFragment : Fragment() {
 
         // Check if tracks exist in Firebase
         firebaseRepository.getPlaylistTracks(playlistId) { tracksFromFirebase ->
-            if (tracksFromFirebase != null && tracksFromFirebase.isNotEmpty()) {
+            if (tracksFromFirebase != null && tracksFromFirebase.tracks.items.isNotEmpty()) {
                 // Tracks found in Firebase, update UI with Firebase data
                 Log.d("PlaylistDetailFragment", "Tracks found in Firebase")
                 updateUI(tracksFromFirebase)
@@ -151,17 +158,63 @@ class PlaylistDetailFragment : Fragment() {
         Log.d("PlaylistDetailFragment", "updateUI: Updating UI with ${tracks.size} tracks")
         this.tracks.clear()
         this.tracks.addAll(tracks)
+
+        playlistTracksAdapter.notifyDataSetChanged()
+    }
+    private fun updateUI(playlist: Playlist) {
+        Log.d("PlaylistDetailFragment", "updateUI: Updating UI with ${playlist.tracks.items.size} tracks")
+
+        // Clear the current tracks and add the new ones from the Playlist
+        this.tracks.clear()
+        this.tracks.addAll(playlist.tracks.items) // Access the tracks from the Playlist
+        val playlistNameTextView = view?.findViewById<TextView>(R.id.playlist_title)
+        val playlistImage = view?.findViewById<ImageView>(R.id.playlist_image)
+
+        playlistNameTextView?.text = playlist.name
+        if (playlistImage != null) {
+            Glide.with(this)
+                .load(playlist.images?.firstOrNull()?.url)
+                .placeholder(R.drawable.ic_music_note)
+                .into(playlistImage)
+        }
+
+        // Update UI components like playlist name, description, etc.
+//        playlistNameTextView.text = playlist.name
+//        playlistDescriptionTextView.text = playlist.description
+
+        // Load playlist image
+//        Glide.with(this)
+//            .load(playlist.images?.firstOrNull()?.url)
+//            .placeholder(R.drawable.ic_music_note)
+//            .into(playlistImageView)
+
+        // Notify the adapter that the data has changed
         playlistTracksAdapter.notifyDataSetChanged()
     }
 
-    private fun onVoteClicked(track: PlaylistTrack) {
-        Log.d("PlaylistDetailFragment", "onVoteClicked: Voting on track ${track.track.name}")
-        track.voteCount += 1
 
-        // Update in Firebase
-        firebaseRepository.updateTrackVote(playlistId!!, track) {
-            Log.d("PlaylistDetailFragment", "onVoteClicked: Track vote count updated")
-            playlistTracksAdapter.notifyDataSetChanged()
+    private fun onVoteClicked(track: PlaylistTrack) {
+        val userId = context?.let { getUserId(it) } // Get the current logged-in user's unique ID
+
+        if (userId != null) {
+            Log.d("PlaylistDetailFragment", "onVoteClicked: Voting on track ${track.track.name}")
+
+            // Call the Firebase method to update the vote
+            firebaseRepository.updateTrackVote(playlistId!!, track, userId) { success ->
+                if (success) {
+                    // Successfully voted, update the vote count
+                    track.voteCount += 1
+                    // Notify the adapter to update the UI
+                    playlistTracksAdapter.notifyDataSetChanged()
+                    Log.d("PlaylistDetailFragment", "onVoteClicked: Track vote count updated")
+                } else {
+                    // User has already voted
+                    Toast.makeText(context, "You've already voted!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            // Handle the case where the user is not logged in
+            Toast.makeText(context, "Please log in to vote!", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -1,5 +1,6 @@
 package com.example.partyplaylist.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,14 +51,29 @@ class PlaylistAdapter(
 
         fun bind(playlist: Playlist) {
             playlistNameTextView.text = playlist.name
-            Glide.with(itemView.context)
-                .load(playlist.images?.firstOrNull()?.url)
-                .placeholder(R.drawable.ic_music_note)
-                .into(playlistImageView)
+            Log.d("PlaylistAdapter", "Playlist: ${playlist.images} \n ${playlist.name}")
+
+            // Check if the image has a valid URL and dimensions
+            val imageUrl = playlist.images?.getOrNull(0)?.url
+            Log.d("PlaylistAdapter", "Image URL: $imageUrl")
+
+            // Handle the case where no image URL is found
+            if (imageUrl.isNullOrEmpty()) {
+                Glide.with(itemView.context)
+                    .load(R.drawable.ic_music_note) // Default placeholder image
+                    .into(playlistImageView)
+            } else {
+                Glide.with(itemView.context)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_music_note) // Placeholder while loading
+                    .into(playlistImageView)
+            }
 
             itemView.setOnClickListener {
                 onPlaylistClick(playlist) // Call the listener
             }
-        }
+
+
+    }
     }
 }

@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -196,6 +195,7 @@ public class LibraryFragment extends Fragment {
         // Optionally, you can also call finish() if you want to close the current fragment/activity
         requireActivity().finish();
     }
+
     private void loadUserProfilePicture() {
         // Fetch the User object from SharedPreferences
 
@@ -219,5 +219,4 @@ public class LibraryFragment extends Fragment {
                     .into(userPhoto); // Set default image to the ImageView
         }
     }
-
 }

@@ -95,11 +95,16 @@ object SharedPreferencesManager {
         return sharedPreferences.getLong("token_expiry", 0)
     }
     @JvmStatic
-     fun  getUserId(context: Context): String? {
-        val prefs: SharedPreferences =
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString("user_id", null)
+    fun getUserId(context: Context): String? {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val userId = prefs.getString("user_id", null)
+
+        // Log the userId value
+        Log.d("useridonly", "Fetched userId: $userId")
+
+        return userId
     }
+
 
     @JvmStatic
     fun getUserName(context: Context): String? {

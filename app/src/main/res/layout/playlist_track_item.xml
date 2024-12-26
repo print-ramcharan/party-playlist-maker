@@ -1,39 +1,76 @@
-<!-- res/layout/playlist_track_item.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground">
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical">
 
-    <!-- Track Name -->
-    <TextView
-        android:id="@+id/track_name"
-        android:text="Track Name"
-        android:textSize="16sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <!-- Track Image (Album Art) -->
+    <ImageView
+        android:id="@+id/track_image"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_music_note"
+        android:scaleType="centerCrop"
+    android:contentDescription="Track Image"/>
 
-    <!-- Artist Name -->
-    <TextView
-        android:id="@+id/track_artist"
-        android:text="Artist Name"
-        android:textSize="14sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <!-- Track Details -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
 
-    <!-- Vote Count -->
-    <TextView
-        android:id="@+id/vote_count"
-        android:text="0"
-        android:textSize="14sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        <!-- Track Name -->
+        <TextView
+            android:id="@+id/track_name"
+            android:text="Track Name"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"/>
 
-    <!-- Vote Button -->
-    <Button
-        android:id="@+id/vote_button"
-        android:text="Vote"
+        <!-- Artist Name -->
+        <TextView
+            android:id="@+id/track_artist"
+            android:text="Artist Name"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+
+    </LinearLayout>
+
+    <!-- Vote Section -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="end"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp">
+
+        <!-- Vote Count -->
+        <TextView
+            android:id="@+id/vote_count"
+            android:text="0"
+            android:textSize="14sp"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- Vote Button -->
+        <Button
+            android:id="@+id/vote_button"
+            android:text="Vote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#FF4081"/>
+    </LinearLayout>
+
 </LinearLayout>
