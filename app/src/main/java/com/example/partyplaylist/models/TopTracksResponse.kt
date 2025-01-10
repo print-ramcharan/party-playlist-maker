@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
-
+import kotlinx.serialization.Serializable
 data class TopTracksResponse(
     @SerializedName("items") val items: List<Track> = emptyList()
 )
@@ -17,7 +17,6 @@ data class SpotifyTrack(
     @SerializedName("duration_ms") val durationMs: Int = 0,
     @SerializedName("popularity") val popularity: Int = 0
 )
-
 data class Album (
     @SerializedName("album_type") val albumType: String = "",
     @SerializedName("artists") val artists: List<Artist> = listOf(),

@@ -3,13 +3,13 @@ package com.example.partyplaylist.models
 import AlbumResponse
 import com.example.partyplaylist.data.Song
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 import org.json.JSONArray
 import org.json.JSONObject
 
 data class TopArtistsResponse(
     @SerializedName("items") val artists: List<Artist>
 )
-
 data class Artist(
     @SerializedName("id") val id: String = "",
     @SerializedName("name") val name: String = "",
@@ -56,17 +56,14 @@ data class Artist(
         Songs: String
     ) : this()
 }
-
 data class Image(
     @SerializedName("height") val height: Int = 0,
     @SerializedName("url") val url: String = "",
     @SerializedName("width") val width: Int = 0
 )
-
 data class ExternalUrls(
     @SerializedName("spotify") val spotify: String = ""
 )
-
 data class Followers(
     @SerializedName("total") val total: Int = 0
 )

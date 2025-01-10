@@ -2,6 +2,7 @@
 package com.example.partyplaylist.services
 
 import AlbumTracks
+import android.content.ContentProvider
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.*
@@ -10,6 +11,7 @@ import com.example.partyplaylist.network.RetrofitClient
 import com.example.partyplaylist.network.SpotifyService
 import com.example.partyplaylist.models.LikedSongs
 import com.example.partyplaylist.data.*
+import com.example.partyplaylist.models.AddedBy
 import com.example.partyplaylist.models.Album
 
 import com.example.partyplaylist.models.Artist
@@ -31,6 +33,7 @@ import com.example.partyplaylist.models.TracksResponse
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.utils.SharedPreferencesManager
 import com.example.partyplaylist.utils.SharedPreferencesManager.getUserId
+import com.example.partyplaylist.utils.SharedPreferencesManager.getUserProfile
 import com.example.partyplaylist.utils.TokenManager
 import com.google.android.play.core.integrity.e
 import com.google.firebase.database.FirebaseDatabase
@@ -59,6 +62,8 @@ class SpotifyDataService(private val context: Context) {
         RetrofitClient.getClient().create(SpotifyService::class.java)
 
     private lateinit var firebaseRepository: FirebaseRepository
+
+  // Use requireContext() directly to get the user ID
 
     private fun getAccessToken(): String? {
         val token = SharedPreferencesManager.getAccessToken(context)
@@ -153,7 +158,7 @@ class SpotifyDataService(private val context: Context) {
         val call: Call<TopTracksResponse> = spotifyService.getTopTracks("Bearer $accessToken")
         makeCall(call, callback)
     }
-    fun fetchPlaylists(callback: (PlaylistResponse?) -> Unit) {
+    fun fetchPlaylists(callback: (PlaylistResponse2?) -> Unit) {
         Log.d("SpotifyDataServicex", "Fetching playlists")
 
         // Get the access token
@@ -188,19 +193,37 @@ class SpotifyDataService(private val context: Context) {
                     if (jsonResponse != null) {
                         try {
                             // Parse the JSON response to a PlaylistResponse object
-                            val playlistResponse =
-                                Gson().fromJson(jsonResponse, PlaylistResponse::class.java)
+                            val playlistResponse = Gson().fromJson(jsonResponse, PlaylistResponse2::class.java)
 
+                            Log.d("SpotifyDataServicex", "Parsed PlaylistResponse: ${Gson().toJson(playlistResponse)}")
                             // Fetch and add the tracks for each playlist
                             playlistResponse.items?.forEach { playlist ->
+                                // Ensure the ownerId is correctly set from the response
+                                val originalOwnerId = playlist.owner?.id
+
+                                // Check if the collaborators list is not null and mutable
+                                if (playlist.collaborators == null) {
+                                    playlist.collaborators = mutableListOf() // Initialize as a mutable list if it's null
+                                }
+
+                                // Add the current user as a collaborator if they are not the owner
+                                if (originalOwnerId != getUserId(context) ){
+                                    playlist.collaborators = playlist.collaborators.toMutableList().apply {
+                                        getUserProfile(context)?.let { add(it) }
+                                    }
+                                }
+
+                                // Fetch tracks and add them to the playlist object
                                 fetchPlaylistTracks(playlist.id, accessToken) { playlistTracks ->
                                     playlist.tracks = playlistTracks // Add tracks to the playlist object
-                                Log.d("playlisttracks",playlistTracks.toString())
+                                    Log.d("playlisttracks", playlistTracks.toString())
                                 }
                             }
 
                             // Save the playlists and tracks to Firebase
-                            savePlaylistsToFirebase(playlistResponse, context)
+//                            savePlaylistsToFirebase(playlistResponse, context)
+                            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+
 
                             callback(playlistResponse) // Return the parsed PlaylistResponse
                         } catch (e: Exception) {
@@ -222,7 +245,7 @@ class SpotifyDataService(private val context: Context) {
     }
 
     // Function to fetch tracks for a specific playlist
-    fun fetchPlaylistTracks(playlistId: String, accessToken: String, callback: (PlaylistTracks) -> Unit) {
+    suspend fun fetchPlaylistTracks(playlistId: String, accessToken: String, callback: (PlaylistTracks) -> Unit) {
         val tracksUrl = "https://api.spotify.com/v1/playlists/$playlistId/tracks"
         Log.d("SpotifyDataServiceURL", "Request URL for tracks: $tracksUrl")
 
@@ -250,6 +273,9 @@ class SpotifyDataService(private val context: Context) {
                         } else {
                             // Map Track objects to PlaylistTrack with extra fields
                             tracksResponse.items.map { item ->
+                                val user =
+                                    item.added_by?.id?.let { fetchUserData(it) }  // Assuming externalUrls holds the URL to get user info
+
                                 val track = item.track
                                 PlaylistTrack(
                                     track = Track(
@@ -271,10 +297,12 @@ class SpotifyDataService(private val context: Context) {
                                         type = track.type,
                                         uri = track.uri,
                                         albumArtUrl = track.albumArtUrl,
-                                        voteCount = 0 // Default value for voteCount
+                                        voteCount = 0, // Default value for voteCount
+                                        added_by = user ?: track.added_by, // Default value for addedBy
+
                                     ),
                                     voteCount = 0,  // Default value for voteCount
-                                    addedBy = User(),  // Default value for addedBy
+                                    added_by = item.added_by,  // Default value for addedBy
                                     addedCount = 0,  // Default value for addedCount
                                     lastUpdated = System.currentTimeMillis()  // Default value for lastUpdated
                                 )
@@ -305,38 +333,88 @@ class SpotifyDataService(private val context: Context) {
             callback(PlaylistTracks()) // Return empty PlaylistTracks if request fails
         }
     }
-    fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse2, context: Context) {
-        val database = FirebaseDatabase.getInstance().reference
 
-        // Get the userId (make sure this function fetches the userId correctly)
-        val userId = getUserId(context)
 
-        // Check if userId is not null
-        if (userId != null) {
-            // Define the path in the Firebase database
-            val userPlaylistsRef = database.child("users").child(userId).child("playlists")
 
-            // Loop through each playlist in the response
-            playlistResponse.playlists.forEach { playlist ->
-                // Save each playlist under the "playlists" node with its unique playlistId
-                val playlistId = playlist.id
-                userPlaylistsRef.child(playlistId).setValue(playlist)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Log.d("Firebase", "Playlist saved: ${playlist.name}")
-                        } else {
-                            Log.e("Firebase", "Failed to save playlist: ${playlist.name}")
-                        }
+
+    private val userCache = mutableMapOf<String, User>()
+
+    // Function to fetch user data
+    suspend fun fetchUserData(userId: String): User {
+        // Check if user data is already cached
+        userCache[userId]?.let {
+            Log.d("SpotifyService", "Returning cached user data for: $userId")
+            return it
+        }
+
+        // If not cached, make API request
+        val validUrl = "https://api.spotify.com/v1/users/$userId"
+        val request = Request.Builder()
+            .url(validUrl)
+            .header("Authorization", "Bearer ${getAccessToken()}")
+            .build()
+
+        val client = OkHttpClient()
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val jsonResponse = response.body?.string()
+                    if (jsonResponse != null) {
+                        val user = Gson().fromJson(jsonResponse, User::class.java)
+                        Log.d("SpotifyService", "Fetched and cached user data for: $userId")
+
+                        // Cache the user data
+                        userCache[userId] = user
+
+                        return@withContext user
                     }
+                } else {
+                    Log.e("SpotifyService", "Failed to fetch user data: ${response.code}")
+                }
+            } catch (e: IOException) {
+                Log.e("SpotifyService", "Request failed: ${e.localizedMessage}", e)
             }
-        } else {
-            Log.e("Firebase", "User ID is null. Cannot save playlists.")
+
+            // Return an empty User object in case of failure
+            return@withContext User()
         }
     }
-
-    // Function to save playlists to Firebase
-// Function to save playlists to Firebase
-    fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse, context: Context) {
+//    fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse2, context: Context) {
+//        val database = FirebaseDatabase.getInstance().reference
+//
+//        // Get the userId (make sure this function fetches the userId correctly)
+//        val userId = getUserId(context)
+//
+//        // Check if userId is not null
+//        if (userId != null) {
+//            // Define the path in the Firebase database
+//            val userPlaylistsRef = database.child("users").child(userId).child("playlists")
+//
+//            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+//
+//
+//            // Loop through each playlist in the response
+//            playlistResponse.items.forEach { playlist ->
+//                // Save each playlist under the "playlists" node with its unique playlistId
+//                val playlistId = playlist.id
+//                userPlaylistsRef.child(playlistId).setValue(playlist)
+//                    .addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            Log.d("Firebase", "Playlist saved: ${playlist.name}")
+//                        } else {
+//                            Log.e("Firebase", "Failed to save playlist: ${playlist.name}")
+//                        }
+//                    }
+//            }
+//        } else {
+//            Log.e("Firebase", "User ID is null. Cannot save playlists.")
+//        }
+//    }
+//
+    private fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse2, context: Context) {
         val database = FirebaseDatabase.getInstance().reference
 
         // Get the userId (make sure this function fetches the userId correctly)
@@ -346,57 +424,180 @@ class SpotifyDataService(private val context: Context) {
         if (userId != null) {
             // Define the path in the Firebase database
             val userPlaylistsRef = database.child("users").child(userId).child("playlists")
+
+            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
 
             // Loop through each playlist in the response
             playlistResponse.items.forEach { playlist ->
                 val playlistId = playlist.id
+                // Check if the playlist already exists in Firebase
+                userPlaylistsRef.child(playlistId).get().addOnSuccessListener { dataSnapshot ->
+                    // If the playlist exists
+                    if (dataSnapshot.exists()) {
+                        // Fetch existing tracks for this playlist
+                        val existingTracks = dataSnapshot.child("tracks").child("items").children.mapNotNull {
+                            it.child("track").getValue(Track::class.java)
+                        }.toMutableList()
 
-                // Check if playlist already exists in Firebase
-                userPlaylistsRef.child(playlistId).get().addOnSuccessListener { snapshot ->
-                    if (snapshot.exists()) {
-                        // Playlist exists, update only the metadata fields
-                        userPlaylistsRef.child(playlistId).updateChildren(
-                            mapOf(
-                                "collaborative" to playlist.collaborative,
-                                "description" to playlist.description,
-                                "externalUrls" to playlist.externalUrls,
-                                "href" to playlist.href,
-                                "id" to playlist.id,
-                                "images" to playlist.images,
-                                "name" to playlist.name,
-                                "owner" to playlist.owner,
-                                "public" to playlist.public,
-                                "snapshotId" to playlist.snapshotId,
-                                "type" to playlist.type,
-                                "uri" to playlist.uri,
-                                "collaborators" to playlist.collaborators,
-                                "totalVotes" to playlist.totalVotes,
-                                "lastModified" to playlist.lastModified
-                            )
-                        ).addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d("Firebase", "Playlist updated: ${playlist.name}")
-                            } else {
-                                Log.e("Firebase", "Failed to update playlist: ${playlist.name}")
+                        // Add new tracks from the playlist
+                        val newTracks = playlist.tracks.items?.map { it.track } ?: emptyList()
+
+                        // Combine the existing tracks with the new ones (avoiding duplicates)
+                        val updatedTracks = existingTracks.union(newTracks).toList()
+
+                        // Update the tracks list for the existing playlist
+                        userPlaylistsRef.child(playlistId).child("tracks").child("items").setValue(updatedTracks)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Log.d("Firebase", "Updated tracks for playlist: ${playlist.name}")
+                                } else {
+                                    Log.e("Firebase", "Failed to update tracks for playlist: ${playlist.name}")
+                                }
                             }
-                        }
                     } else {
-                        // Playlist doesn't exist, add it as a new playlist
+                        // If the playlist doesn't exist, save it as a new playlist
                         userPlaylistsRef.child(playlistId).setValue(playlist)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    Log.d("Firebase", "Playlist added: ${playlist.name}")
+                                    Log.d("Firebase", "Playlist saved: ${playlist.name}")
                                 } else {
-                                    Log.e("Firebase", "Failed to add playlist: ${playlist.name}")
+                                    Log.e("Firebase", "Failed to save playlist: ${playlist.name}")
                                 }
                             }
                     }
+                }.addOnFailureListener { exception ->
+                    Log.e("Firebase", "Error fetching playlist: ", exception)
                 }
             }
         } else {
             Log.e("Firebase", "User ID is null. Cannot save playlists.")
         }
     }
+
+//    private fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse2, context: Context) {
+//        val database = FirebaseDatabase.getInstance().reference
+//
+//        // Get the userId (make sure this function fetches the userId correctly)
+//        val userId = getUserId(context)
+//
+//        // Check if userId is not null
+//        if (userId != null) {
+//            // Define the path in the Firebase database
+//            val userPlaylistsRef = database.child("users").child(userId).child("playlists")
+//
+//            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+//
+//            // Loop through each playlist in the response
+//            playlistResponse.items.forEach { playlist ->
+//                val playlistId = playlist.id
+//                // Check if the playlist already exists in Firebase
+//                userPlaylistsRef.child(playlistId).get().addOnSuccessListener { dataSnapshot ->
+//                    // If the playlist exists
+//                    if (dataSnapshot.exists()) {
+//                        // Fetch existing PlaylistTracks for this playlist
+//                        val existingPlaylistTracks = dataSnapshot.child("tracks").child("items").children.mapNotNull {
+//                            it.getValue(PlaylistTrack::class.java)
+//                        }.toMutableList()
+//
+//                        // Add new PlaylistTracks from the playlist
+//                        val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList() // Include full PlaylistTrack objects
+//
+//                        // Combine the existing tracks with the new ones (avoiding duplicates)
+//                        val updatedPlaylistTracks = existingPlaylistTracks.union(newPlaylistTracks).toList()
+//
+//                        // Update the tracks list for the existing playlist
+//                        userPlaylistsRef.child(playlistId).child("tracks").child("items").setValue(updatedPlaylistTracks)
+//                            .addOnCompleteListener { task ->
+//                                if (task.isSuccessful) {
+//                                    Log.d("Firebase", "Updated tracks for playlist: ${playlist.name}")
+//                                } else {
+//                                    Log.e("Firebase", "Failed to update tracks for playlist: ${playlist.name}")
+//                                }
+//                            }
+//                    } else {
+//                        // If the playlist doesn't exist, save it as a new playlist
+//                        userPlaylistsRef.child(playlistId).setValue(playlist)
+//                            .addOnCompleteListener { task ->
+//                                if (task.isSuccessful) {
+//                                    Log.d("Firebase", "Playlist saved: ${playlist.name}")
+//                                } else {
+//                                    Log.e("Firebase", "Failed to save playlist: ${playlist.name}")
+//                                }
+//                            }
+//                    }
+//                }.addOnFailureListener { exception ->
+//                    Log.e("Firebase", "Error fetching playlist: ", exception)
+//                }
+//            }
+//        } else {
+//            Log.e("Firebase", "User ID is null. Cannot save playlists.")
+//        }
+//    }
+
+    // Function to save playlists to Firebase
+// Function to save playlists to Firebase
+//    fun savePlaylistsToFirebase(playlistResponse: PlaylistResponse2, context: Context) {
+//        val database = FirebaseDatabase.getInstance().reference
+//
+//        // Get the userId (make sure this function fetches the userId correctly)
+//        val userId = getUserId(context)
+//
+//        // Check if userId is not null
+//        if (userId != null) {
+//            // Define the path in the Firebase database
+//            val userPlaylistsRef = database.child("users").child(userId).child("playlists")
+//
+//            // Loop through each playlist in the response
+//            playlistResponse.items.forEach { playlist ->
+//                val playlistId = playlist.id
+//
+//                // Check if playlist already exists in Firebase
+//                userPlaylistsRef.child(playlistId).get().addOnSuccessListener { snapshot ->
+//                    if (snapshot.exists()) {
+//                        // Playlist exists, update only the metadata fields
+//                        userPlaylistsRef.child(playlistId).updateChildren(
+//                            mapOf(
+//                                "collaborative" to playlist.collaborative,
+//                                "description" to playlist.description,
+//                                "externalUrls" to playlist.externalUrls,
+//                                "href" to playlist.href,
+//                                "id" to playlist.id,
+//                                "images" to playlist.images,
+//                                "name" to playlist.name,
+//                                "owner" to playlist.owner,
+//                                "public" to playlist.public,
+//                                "snapshotId" to playlist.snapshotId,
+//                                "type" to playlist.type,
+//                                "uri" to playlist.uri,
+//                                "collaborators" to playlist.collaborators,
+//                                "totalVotes" to playlist.totalVotes,
+//                                "tracks" to playlist.tracks,
+//                                "lastModified" to playlist.lastModified
+//                            )
+//                        ).addOnCompleteListener { task ->
+//                            if (task.isSuccessful) {
+//                                Log.d("Firebase", "Playlist updated: ${playlist.name}")
+//                            } else {
+//                                Log.e("Firebase", "Failed to update playlist: ${playlist.name}")
+//                            }
+//                        }
+//                    } else {
+//                        // Playlist doesn't exist, add it as a new playlist
+//                        userPlaylistsRef.child(playlistId).setValue(playlist)
+//                            .addOnCompleteListener { task ->
+//                                if (task.isSuccessful) {
+//                                    Log.d("Firebase", "Playlist added: ${playlist.name}")
+//                                } else {
+//                                    Log.e("Firebase", "Failed to add playlist: ${playlist.name}")
+//                                }
+//                            }
+//                    }
+//                }
+//            }
+//        } else {
+//            Log.e("Firebase", "User ID is null. Cannot save playlists.")
+//        }
+//    }
 
     fun fetchLikedSongs(callback: (LikedSongs?) -> Unit) {
         Log.d("SpotifyDataService", "Fetching liked songs")

@@ -3,7 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Added for annotation processing
     id("com.google.gms.google-services")
-}
+    id("org.jetbrains.kotlin.plugin.serialization")
+  }
 
 android {
     namespace = "com.example.partyplaylist"
@@ -149,6 +150,9 @@ dependencies {
     implementation ("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
     implementation ("androidx.appcompat:appcompat:1.6.1")
     implementation ("com.google.android.material:material:1.9.0")
+
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
 
 }

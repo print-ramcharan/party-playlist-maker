@@ -15,7 +15,7 @@ class TokenManager(private val context: Context) {
     private val clientId = "9e55757a811a432c88d740c04711f5a0" // Replace with your actual client ID
     private val clientSecret = "d38dcbead2224dc9a50b6a978e83c295" // Replace with your actual client secret
 
-    private fun getAccessToken(): String? {
+     fun getAccessToken(): String? {
         return SharedPreferencesManager.getAccessToken(context)
     }
 

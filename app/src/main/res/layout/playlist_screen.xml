@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:id="@+id/playlist_screen">
 
     <!-- AppBarLayout for Image and Collapsing Title -->
     <com.google.android.material.appbar.AppBarLayout
@@ -24,13 +25,13 @@
                 android:src="@drawable/gradient_background"
                 android:scaleType="centerCrop"
                 android:background="@drawable/gradient"
-                android:contentDescription="Playlist Image"/>
+                android:contentDescription="Playlist Image" />
 
             <!-- Gradient Overlay on the Image -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/gradient"/>
+                android:background="@drawable/gradient" />
 
             <!-- Playlist Name over the Image -->
             <TextView
@@ -38,22 +39,38 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Playlist Name"
-                android:textSize="24sp"
+                android:textSize="28sp"
                 android:textColor="#FFFFFF"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold"
-                android:gravity="start|bottom"
+                android:gravity="start"
                 android:layout_marginStart="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
+                android:layout_gravity="bottom"
                 android:maxLines="1"
-                android:ellipsize="end"/>
+                android:ellipsize="end" />
         </FrameLayout>
     </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Circular Add Button with Shadow -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_add"
+        android:layout_gravity="end"
+        android:layout_marginTop="220dp"
+        android:layout_marginEnd="16dp"
+        app:backgroundTint="@color/white"
+        app:elevation="8dp"
+        android:contentDescription="Add Button"
+        android:tint="@color/black"
+        android:stateListAnimator="@animator/fab_elevation_animator" />
 
     <!-- RecyclerView to display tracks -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlist_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="250dp"/>
+        android:layout_marginTop="250dp" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

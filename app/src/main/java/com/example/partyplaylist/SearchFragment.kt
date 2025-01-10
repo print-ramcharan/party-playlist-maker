@@ -1,7 +1,9 @@
 package com.example.partyplaylist
 
 import android.os.Bundle
+import android.text.Editable
 import android.text.TextUtils
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,22 +13,28 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.partyplaylist.models.data.Song
-import com.example.partyplaylist.network.RetrofitClient
 import com.example.partyplaylist.adapters.SearchAdapter
+import com.example.partyplaylist.models.Track
+import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.data.SearchResponse
+//import com.example.partyplaylist.models.data.Track
+import com.example.partyplaylist.network.RetrofitClient
+import com.example.partyplaylist.utils.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
-import com.example.partyplaylist.utils.TokenManager
+import retrofit2.http.Query
 
 class SearchFragment : Fragment() {
     private var searchBar: EditText? = null
     private var searchResultsRecycler: RecyclerView? = null
     private var searchAdapter: SearchAdapter? = null
-    private var searchResults: MutableList<Song> = mutableListOf()
+    private var searchResults: MutableList<Any> = mutableListOf()  // Using Any to handle both Track and Album
+    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,111 +51,103 @@ class SearchFragment : Fragment() {
         searchResultsRecycler?.layoutManager = LinearLayoutManager(context)
         searchResultsRecycler?.adapter = searchAdapter
 
-        // Search button click listener (use a button for the actual search or listen to text changes)
-        view.findViewById<View>(androidx.appcompat.R.id.search_bar).setOnClickListener {
-            performSearch()
-        }
+        // Search text listener
+        searchBar?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(editable: Editable?) {
+                searchJob?.cancel() // Cancel any previous search job
+                searchJob = CoroutineScope(Dispatchers.Main).launch {
+                    delay(300) // Wait for 300ms after typing stops before searching
+                    performSearch(editable.toString().trim()) // Perform the search with the current text
+                }
+            }
+        })
 
         return view
     }
 
-    private fun performSearch() {
-        val query = searchBar!!.text.toString().trim()
+    private fun performSearch(query: String) {
         Log.d("SearchFragment", "Search query: $query")
 
         if (TextUtils.isEmpty(query)) {
             Toast.makeText(context, "Please enter a search term!", Toast.LENGTH_SHORT).show()
-            Log.d("SearchFragment", "Search query is empty")
             return
         }
 
         // Use the TokenManager to refresh the token if needed
         val tokenManager = context?.let { TokenManager(it) }
 
-        if (tokenManager != null) {
-            Log.d("SearchFragment", "Refreshing token if needed")
-            tokenManager.refreshTokenIfNeeded { accessToken ->
-                Log.d("SearchFragment", "Access token after refresh: $accessToken")
+        tokenManager?.refreshTokenIfNeeded { accessToken ->
+            if (accessToken == null) {
+                Toast.makeText(context, "Access token is null, please log in again!", Toast.LENGTH_SHORT).show()
+                return@refreshTokenIfNeeded
+            }
 
-                // If access token is null after refresh attempt, show a message
-                if (accessToken == null) {
-                    Toast.makeText(context, "Access token is null, please log in again!", Toast.LENGTH_SHORT).show()
-                    Log.e("SearchFragment", "Access token is null")
-                    return@refreshTokenIfNeeded
-                }
+            // Perform the network request in a coroutine
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val response: Response<SearchResponse> = RetrofitClient
+                        .getSpotifyApiService()
+                        .searchSpotify(query, "track,album,artist", 10, "Bearer $accessToken")
 
-                // Perform the network request in a coroutine
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        Log.d("SearchFragment", "Making API call with token: $accessToken")
-                        val response: Response<SearchResponse> = RetrofitClient
-                            .getSpotifyApiService()
-                            .searchSpotify(query, "track,album,artist", 10, "Bearer $accessToken")
+                    if (response.isSuccessful) {
+                        val searchResponse = response.body()
+                        Log.d("SearchFragment", "Response body: $searchResponse")
 
-                        Log.d("SearchFragment", "API response code: ${response.code()}")
+                        // Clear previous search results
+                        withContext(Dispatchers.Main) {
+                            searchResults.clear()
+                        }
 
-                        // Handle the response
-                        if (response.isSuccessful) {
-                            val searchResponse = response.body()
-                            Log.d("SearchFragment", "Response body: $searchResponse")
-
-                            // First, check for tracks, otherwise fallback to albums
-                            val trackList = searchResponse?.tracks?.tracks ?: emptyList()
-                            if (trackList.isNotEmpty()) {
-                                val songList = trackList.map { track ->
-                                    val artistNames = track.artists?.joinToString(", ") { it.name } ?: "Unknown Artist"
-                                    val albumName = track.album?.name ?: "Unknown Album"
-                                    val image = track.album?.images?.firstOrNull()?.url ?: ""  // Safely get the first image URL, or empty string if not available
-
-                                    Song(track.name, track.previewUrl, artistNames, albumName, image)
-                                }
-                                withContext(Dispatchers.Main) {
-                                    Log.d("SearchFragment", "Updating UI with new songs")
-                                    searchAdapter?.updateList(songList)
-                                    searchResults.clear()
-                                    searchResults.addAll(songList)
-                                    searchAdapter?.notifyDataSetChanged()
-                                }
-                            } else {
-                                // Fallback to albums if no tracks are found
-                                val albumList = searchResponse?.albums?.items ?: emptyList()
-                                val albumSongs = albumList.map { album ->
-                                    val artistNames = album.artists?.joinToString(", ") { it.name } ?: "Unknown Artist"
-                                    val albumName = album.name ?: "Unknown Album"
-                                    val image = album.images?.firstOrNull()?.url ?: ""  // Safely get the first image URL, or empty string if not available
-
-                                    Song(album.name, "", artistNames, albumName, image)
-                                }
-                                withContext(Dispatchers.Main) {
-                                    Log.d("SearchFragment", "Updating UI with album songs")
-                                    searchAdapter?.updateList(albumSongs)
-                                    searchResults.clear()
-                                    searchResults.addAll(albumSongs)
-                                    searchAdapter?.notifyDataSetChanged()
-                                }
-                            }
-                        } else if (response.code() == 401) {
-                            // Token expired, retry the search
+                        // Handle albums first (if available)
+                        val albumList = searchResponse?.albums?.albums ?: emptyList<Album>()
+                        Log.d("SearchFragment", "Album list size: ${albumList.size}")  // Log album count
+                        if (albumList.isNotEmpty()) {
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Access token expired, refreshing...", Toast.LENGTH_SHORT).show()
-                                Log.d("SearchFragment", "Token expired, refreshing...")
+                                searchResults.addAll(albumList)  // Add albums to the list first
+                                Log.d("SearchFragment", "Albums added: ${albumList.size}")  // Log albums added
                             }
                         } else {
+                            Log.d("SearchFragment", "No albums found.")  // Log if no albums are found
+                        }
+
+                        // Handle tracks second (if available)
+                        val trackList = searchResponse?.tracks?.tracks ?: emptyList()
+                        Log.d("SearchFragment", "Track list size: ${trackList.size}")  // Log track count
+                        if (trackList.isNotEmpty()) {
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
-                                Log.e("SearchFragment", "Error response: ${response.message()}")
+                                searchResults.addAll(trackList)  // Add tracks to the list after albums
+                                Log.d("SearchFragment", "Tracks added: ${trackList.size}")  // Log tracks added
                             }
+                        } else {
+                            Log.d("SearchFragment", "No tracks found.")  // Log if no tracks are found
                         }
-                    } catch (e: Exception) {
+
+                        // Update UI after adding both albums and tracks
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
-                            Log.e("SearchFragment", "Exception: ${e.message}")
+                            searchAdapter?.notifyDataSetChanged() // Notify adapter that the list has been updated
+                            Log.d("SearchFragment", "Adapter notified with updated results.")
                         }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
+                        }
+                        Log.e("SearchFragment", "API response error: ${response.message()}")
                     }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    Log.e("SearchFragment", "Exception: ${e.message}")
                 }
             }
         }
     }
 
 }
+
+
 

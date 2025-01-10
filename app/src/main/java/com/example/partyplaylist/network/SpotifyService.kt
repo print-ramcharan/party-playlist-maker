@@ -14,6 +14,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface SpotifyService {
+    @POST("v1/playlists/{playlistId}/tracks")
+    suspend fun addTracksToPlaylist(
+        @Header("Authorization") authHeader: String,
+        @Path("playlistId") playlistId: String?,
+        @Body tracks: Map<String, List<String>>
+    ): retrofit2.Response<Unit>
+
     @GET("v1/me")
     fun getUserProfile(@Header("Authorization") token: String): Call<User>
 

@@ -2,10 +2,13 @@ package com.example.partyplaylist.repositories
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.snapshotFlow
 import com.example.partyplaylist.data.Song
 import com.example.partyplaylist.data.User
+import com.example.partyplaylist.models.AddedBy
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Artist
+import com.example.partyplaylist.models.ExternalUrls
 import com.example.partyplaylist.models.Image
 import com.example.partyplaylist.models.Playlist
 import com.example.partyplaylist.models.PlaylistTrack
@@ -216,71 +219,686 @@ class FirebaseRepository(private val context: Context) {
     }
 
 
-    fun savePlaylists(userId: String, playlists: List<Playlist>?) {
-        if (playlists == null) {
-            Log.e("FbRepo_SavePlaylists", "Playlists list is null, cannot save.")
-            return
-        }
+//    fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//        if (playlists == null) {
+//            Log.e("FbRepo_SavePlaylists", "Playlists list is null, cannot save.")
+//            return
+//        }
+//
+//        val userPlaylistsRef = database.getReference("users").child(userId).child("playlists") // Reference to user's playlists
+//        for (playlist in playlists) {
+//            if (playlist.id.isNullOrEmpty()) {
+//                Log.e(
+//                    "FbRepo_SavePlaylists",
+//                    "Playlist ID is null or empty for playlist: ${playlist.name}"
+//                )
+//                continue
+//            }
+//
+//            // If tracks are null, handle the case
+//            if (playlist.tracks.items == null) {
+//                Log.e("FbRepo_SavePlaylists", "Tracks are null for playlist: ${playlist.name}, cannot save.")
+//                continue
+//            }
+//
+//            // Log the playlist snapshot and track details
+//            Log.d("FbRepo_SavePlaylists", "Saving playlist: ${playlist.name}, ID: ${playlist.id}")
+//            Log.d("FbRepo_SavePlaylists", "Playlist data snapshot: $playlist")
+//
+//            // Log track details in the playlist
+//            playlist.tracks.items.forEachIndexed { index, track ->
+//                Log.d("FbRepo_SavePlaylists", "Track $index: ${track.track.name}, Preview URL: ${track.track.previewUrl}")
+//            }
+//
+//            // Reference to the specific playlist
+//            val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//            // Check if the playlist exists
+//            playlistRef.get().addOnSuccessListener { dataSnapshot ->
+//                if (dataSnapshot.exists()) {
+//                    // Playlist exists, update it
+//                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            Log.d("FbRepo_SavePlaylists", "Playlist ${playlist.name} updated successfully for user $userId")
+//                        } else {
+//                            Log.e("FbRepo_SavePlaylists", "Failed to update playlist ${playlist.name} for user $userId", task.exception)
+//                        }
+//                    }
+//                } else {
+//                    // Playlist doesn't exist, save it with empty tracks if tracks are null
+//                    if (playlist.tracks.items.isNullOrEmpty()) {
+//                        Log.w("FbRepo_SavePlaylists", "Tracks are empty for playlist ${playlist.name}, saving with empty tracks.")
+//                    }
+//                    // Save the new playlist (even if tracks are empty)
+//                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            Log.d("FbRepo_SavePlaylists", "New playlist ${playlist.name} saved successfully for user $userId")
+//                        } else {
+//                            Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name} for user $userId", task.exception)
+//                        }
+//                    }
+//                }
+//            }.addOnFailureListener { exception ->
+//                Log.e("FbRepo_SavePlaylists", "Error checking existing playlist for user $userId: ${playlist.id}", exception)
+//            }
+//        }
+//    }
+//fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//    if (playlists == null) return
+//
+//    val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//    userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//        val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//        for (playlist in playlists) {
+//            if (playlist.id.isNullOrEmpty()) continue
+//
+//            val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//            if (existingPlaylists.containsKey(playlist.id)) {
+//                val existingTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                    it.child("track").getValue(Track::class.java)
+//                }?.toMutableList() ?: mutableListOf()
+//
+//                val newTracks = playlist.tracks.items?.map { it.track } ?: emptyList()
+//
+//                val updatedTracks = existingTracks.union(newTracks).toList()
+//
+//                playlistRef.child("tracks").child("items").setValue(updatedTracks).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to update tracks for playlist ${playlist.name}")
+//                }
+//            } else {
+//                playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                }
+//            }
+//        }
+//    }.addOnFailureListener { exception ->
+//        Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//    }
+//}
 
-        val userPlaylistsRef = database.getReference("users").child(userId).child("playlists") // Reference to user's playlists
+//    fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//        if (playlists == null) return
+//
+//        val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//        userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//            val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//            for (playlist in playlists) {
+//                if (playlist.id.isNullOrEmpty()) continue
+//
+//                val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//                if (existingPlaylists.containsKey(playlist.id)) {
+//                    val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                        it.getValue(PlaylistTrack::class.java)
+//                    }?.toMutableList() ?: mutableListOf()
+//
+//                    // Use PlaylistTrack objects instead of just Track
+//                    val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+//
+//                    // Combine the existing PlaylistTrack objects with the new ones
+//                    val updatedPlaylistTracks = existingPlaylistTracks.union(newPlaylistTracks).toList()
+//
+//                    playlistRef.child("tracks").child("items").setValue(updatedPlaylistTracks).addOnCompleteListener { task ->
+//                        if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to update tracks for playlist ${playlist.name}")
+//                    }
+//                } else {
+//                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                        if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                    }
+//                }
+//            }
+//        }.addOnFailureListener { exception ->
+//            Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//        }
+//    }
+
+//fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//    if (playlists == null) return
+//
+//    val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//    userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//        val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//        for (playlist in playlists) {
+//            if (playlist.id.isNullOrEmpty()) continue
+//
+//            val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//            if (existingPlaylists.containsKey(playlist.id)) {
+//                val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                    it.getValue(PlaylistTrack::class.java)
+//                }?.toMutableList() ?: mutableListOf()
+//
+//                // Use PlaylistTrack objects instead of just Track
+//                val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+//
+//                // Merge the tracks: Keep existing tracks and add new ones if not already present
+//                val updatedPlaylistTracks = newPlaylistTracks.map { newTrack ->
+//                    val existingTrack = existingPlaylistTracks.find { it.track.id == newTrack.track.id }
+//
+//                    if (existingTrack != null) {
+//                        // If track already exists, keep existing fields (do not overwrite them)
+//                        existingTrack.copy(
+//                            voteCount = existingTrack.voteCount ?: 0,
+//                            added_by = existingTrack.added_by ?: AddedBy(), // Default to empty AddedBy if null
+//                            addedCount = existingTrack.addedCount ?: 0,
+//                            lastUpdated = existingTrack.lastUpdated ?: System.currentTimeMillis(),
+//                            voters = existingTrack.voters.takeIf { it.isNotEmpty() } ?: mutableListOf() // Default empty list if null
+//                        )
+//                    } else {
+//                        // If track doesn't exist, initialize fields to default values
+//                        PlaylistTrack(
+//                            track = newTrack.track,
+//                            voteCount = 0,
+//                            added_by = newTrack.added_by, // Default to empty AddedBy
+//                            addedCount = 0,
+//                            lastUpdated = System.currentTimeMillis(),
+//                            voters = mutableListOf() // Default empty list
+//                        )
+//                    }
+//                }
+//
+//                // Add new tracks that are not already in the list
+//                val tracksToAdd = newPlaylistTracks.filter { newTrack ->
+//                    existingPlaylistTracks.none { it.track.id == newTrack.track.id }
+//                }
+//
+//                // Combine the updated and new tracks
+//                val finalUpdatedTracks = updatedPlaylistTracks + tracksToAdd
+//
+//                // Update Firebase with the merged tracks
+//                playlistRef.child("tracks").child("items").setValue(finalUpdatedTracks).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to update tracks for playlist ${playlist.name}")
+//                }
+//            } else {
+//                // If playlist doesn't exist, save it as a new playlist
+//                playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                }
+//            }
+//        }
+//    }.addOnFailureListener { exception ->
+//        Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//    }
+//}
+
+//    fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//        if (playlists == null) return
+//
+//        val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//        userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//            val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//            for (playlist in playlists) {
+//                if (playlist.id.isNullOrEmpty()) continue
+//
+//                val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//                if (existingPlaylists.containsKey(playlist.id)) {
+//                    val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                        it.getValue(PlaylistTrack::class.java)
+//                    }?.toMutableList() ?: mutableListOf()
+//
+//                    // If new tracks are null, don't update the tracks. Just keep existing ones.
+//                    val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+//
+//                    if (newPlaylistTracks.isNotEmpty()) {
+//                        // Merge the tracks: Keep existing tracks and add new ones if not already present
+//                        val updatedPlaylistTracks = newPlaylistTracks.map { newTrack ->
+//                            val existingTrack = existingPlaylistTracks.find { it.track.id == newTrack.track.id }
+//
+//                            if (existingTrack != null) {
+//                                // If track already exists, keep existing fields (do not overwrite them)
+//                                existingTrack.copy(
+//                                    voteCount = existingTrack.voteCount ?: 0,
+//                                    added_by = existingTrack.added_by ?: AddedBy(), // Default to empty AddedBy if null
+//                                    addedCount = existingTrack.addedCount ?: 0,
+//                                    lastUpdated = existingTrack.lastUpdated ?: System.currentTimeMillis(),
+//                                    voters = existingTrack.voters.takeIf { it.isNotEmpty() } ?: mutableListOf() // Default empty list if null
+//                                )
+//                            } else {
+//                                // If track doesn't exist, initialize fields to default values
+//                                PlaylistTrack(
+//                                    track = newTrack.track,
+//                                    voteCount = 0,
+//                                    added_by = newTrack.added_by, // Default to empty AddedBy
+//                                    addedCount = 0,
+//                                    lastUpdated = System.currentTimeMillis(),
+//                                    voters = mutableListOf() // Default empty list
+//                                )
+//                            }
+//                        }
+//
+//                        // Add new tracks that are not already in the list
+//                        val tracksToAdd = newPlaylistTracks.filter { newTrack ->
+//                            existingPlaylistTracks.none { it.track.id == newTrack.track.id }
+//                        }
+//
+//                        // Combine the updated and new tracks
+//                        val finalUpdatedTracks = updatedPlaylistTracks + tracksToAdd
+//
+//                        // Update Firebase with the merged tracks
+//                        playlistRef.child("tracks").child("items").setValue(finalUpdatedTracks).addOnCompleteListener { task ->
+//                            if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to update tracks for playlist ${playlist.name}")
+//                        }
+//                    } else {
+//                        // If no new tracks, don't overwrite existing tracks
+//                        Log.d("FbRepo_SavePlaylists", "No new tracks to add, keeping existing tracks for playlist ${playlist.name}")
+//                    }
+//                } else {
+//                    // If playlist doesn't exist, save it as a new playlist
+//                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                        if (!task.isSuccessful) Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                    }
+//                }
+//            }
+//        }.addOnFailureListener { exception ->
+//            Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//        }
+//    }
+
+//fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//    if (playlists == null) return
+//
+//    val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//    userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//        val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//        for (playlist in playlists) {
+//            if (playlist.id.isNullOrEmpty()) continue
+//
+//            val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//            if (existingPlaylists.containsKey(playlist.id)) {
+//                val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                    it.getValue(PlaylistTrack::class.java)
+//                }?.toMutableList() ?: mutableListOf()
+//
+//                val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+//
+//                if (newPlaylistTracks.isNotEmpty()) {
+//                    val updatedPlaylistTracks = newPlaylistTracks.map { newTrack ->
+//                        val existingTrack = existingPlaylistTracks.find { it.track.id == newTrack.track.id }
+//
+//                        if (existingTrack != null) {
+//                            existingTrack.copy(
+//                                voteCount = existingTrack.voteCount ?: 0,
+//                                added_by = existingTrack.added_by ?: AddedBy(),
+//                                addedCount = existingTrack.addedCount ?: 0,
+//                                lastUpdated = existingTrack.lastUpdated ?: System.currentTimeMillis(),
+//                                voters = existingTrack.voters.takeIf { it.isNotEmpty() } ?: mutableListOf()
+//                            )
+//                        } else {
+//                            PlaylistTrack(
+//                                track = newTrack.track,
+//                                voteCount = 0,
+//                                added_by = newTrack.added_by,
+//                                addedCount = 0,
+//                                lastUpdated = System.currentTimeMillis(),
+//                                voters = mutableListOf()
+//                            )
+//                        }
+//                    }
+//
+//                    val tracksToAdd = newPlaylistTracks.filter { newTrack ->
+//                        existingPlaylistTracks.none { it.track.id == newTrack.track.id }
+//                    }
+//
+//                    val finalUpdatedTracks = updatedPlaylistTracks + tracksToAdd
+//
+//                    // Check if the user is the owner or a collaborator
+//                    val ownerId = playlist.owner.id
+//                    val collaborators = playlist.collaborators ?: emptyList()
+//
+//                    if (ownerId == userId) {
+//                        // User is the owner, update their own playlist with full data
+//                        playlistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+//                    } else if (collaborators.any { it.id == userId }) {
+//                        // User is a collaborator, update only the track data, not other metadata
+//                        val collaboratorTrackEntries = finalUpdatedTracks.map { track ->
+//                            PlaylistTrack(
+//                                track = track.track,
+//                                voteCount = 0, // Reset metadata for the collaborator
+//                                added_by = AddedBy(),
+//                                addedCount = 0,
+//                                lastUpdated = System.currentTimeMillis(),
+//                                voters = mutableListOf()
+//                            )
+//                        }
+//
+//                        // Append the new track to the existing list of tracks
+//                        playlistRef.child("tracks").child("items").setValue(collaboratorTrackEntries)
+//
+//                        // Save the same for the owner's playlist (keeping the full metadata intact)
+//                        val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+//                        ownerPlaylistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+//                    }
+//
+//                } else {
+//                    Log.d("FbRepo_SavePlaylists", "No new tracks to add, keeping existing tracks for playlist ${playlist.name}")
+//                }
+//            } else {
+//                // Playlist doesn't exist, save it as a new playlist
+//                playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) {
+//                        Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                    }
+//                }
+//
+//                // Save empty track data in the current user's playlist section
+//                val emptyTrackEntries = playlist.tracks.items?.map {
+//                    PlaylistTrack(
+//                        track = it.track,
+//                        voteCount = 0,
+//                        added_by = AddedBy(),
+//                        addedCount = 0,
+//                        lastUpdated = System.currentTimeMillis(),
+//                        voters = mutableListOf()
+//                    )
+//                } ?: emptyList()
+//
+//                playlistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+//
+//                // Save the full playlist (including tracks) in the owner's section
+//                val ownerId = playlist.owner.id
+//                val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+//                ownerPlaylistRef.setValue(playlist)
+//
+//                // Save the playlist track data for each collaborator
+//                val collaborators = playlist.collaborators ?: emptyList()
+//                for (collaborator in collaborators) {
+//                    val collaboratorPlaylistRef = database.getReference("users").child(collaborator.id).child("playlists").child(playlist.id)
+//                    collaboratorPlaylistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+//                }
+//            }
+//        }
+//    }.addOnFailureListener { exception ->
+//        Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//    }
+//}
+//fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+//    if (playlists == null) return
+//
+//    val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+//
+//    userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+//        val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+//
+//        for (playlist in playlists) {
+//            if (playlist.id.isNullOrEmpty()) continue
+//
+//            val playlistRef = userPlaylistsRef.child(playlist.id)
+//
+//            if (existingPlaylists.containsKey(playlist.id)) {
+//                val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+//                    it.getValue(PlaylistTrack::class.java)
+//                }?.toMutableList() ?: mutableListOf()
+//
+//                val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+//
+//                if (newPlaylistTracks.isNotEmpty()) {
+//                    val updatedPlaylistTracks = newPlaylistTracks.map { newTrack ->
+//                        val existingTrack = existingPlaylistTracks.find { it.track.id == newTrack.track.id }
+//
+//                        if (existingTrack != null) {
+//                            existingTrack.copy(
+//                                voteCount = existingTrack.voteCount ?: 0,
+//                                added_by = existingTrack.added_by ?: AddedBy(),
+//                                addedCount = existingTrack.addedCount ?: 0,
+//                                lastUpdated = existingTrack.lastUpdated ?: System.currentTimeMillis(),
+//                                voters = existingTrack.voters.takeIf { it.isNotEmpty() } ?: mutableListOf()
+//                            )
+//                        } else {
+//                            PlaylistTrack(
+//                                track = newTrack.track,
+//                                voteCount = 0,
+//                                added_by = newTrack.added_by,
+//                                addedCount = 0,
+//                                lastUpdated = System.currentTimeMillis(),
+//                                voters = mutableListOf()
+//                            )
+//                        }
+//                    }
+//
+//                    val tracksToAdd = newPlaylistTracks.filter { newTrack ->
+//                        existingPlaylistTracks.none { it.track.id == newTrack.track.id }
+//                    }
+//
+//                    val finalUpdatedTracks = updatedPlaylistTracks + tracksToAdd
+//
+//                    // Check if the user is the owner or a collaborator
+//                    val ownerId = playlist.owner.id
+//                    val collaborators = playlist.collaborators ?: emptyList()
+//
+//                    if (ownerId == userId) {
+//                        // User is the owner, update their own playlist with full data
+//                        playlistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+//                    } else if (collaborators.any { it.id == userId }) {
+//                        // User is a collaborator, update only the track data, not other metadata
+//                        val collaboratorTrackEntries = finalUpdatedTracks.map { track ->
+//                            PlaylistTrack(
+//                                track = track.track,
+//                                voteCount = 0, // Reset metadata for the collaborator
+//                                added_by = AddedBy(),
+//                                addedCount = 0,
+//                                lastUpdated = System.currentTimeMillis(),
+//                                voters = mutableListOf()
+//                            )
+//                        }
+//
+//                        // Save only the track data for the collaborator, without metadata
+//                        playlistRef.child("tracks").child("items").setValue(collaboratorTrackEntries)
+//
+//                        // Save only metadata in the collaborator's playlist section (playlist ID, owner ID, and collaborators)
+//                        val collaboratorMetadata = mapOf(
+//                            "playlistId" to playlist.id,
+//                            "ownerId" to playlist.owner.id,
+//                            "collaborators" to playlist.collaborators?.map { it.id }
+//                        )
+//                        playlistRef.setValue(collaboratorMetadata)
+//
+//                        // Save the same for the owner's playlist (keeping the full metadata intact)
+//                        val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+//                        ownerPlaylistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+//                    }
+//
+//                } else {
+//                    Log.d("FbRepo_SavePlaylists", "No new tracks to add, keeping existing tracks for playlist ${playlist.name}")
+//                }
+//            } else {
+//                // Playlist doesn't exist, save it as a new playlist
+//                playlistRef.setValue(playlist).addOnCompleteListener { task ->
+//                    if (!task.isSuccessful) {
+//                        Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
+//                    }
+//                }
+//
+//                // Save empty track data in the current user's playlist section
+//                val emptyTrackEntries = playlist.tracks.items?.map {
+//                    PlaylistTrack(
+//                        track = it.track,
+//                        voteCount = 0,
+//                        added_by = AddedBy(),
+//                        addedCount = 0,
+//                        lastUpdated = System.currentTimeMillis(),
+//                        voters = mutableListOf()
+//                    )
+//                } ?: emptyList()
+//
+//                playlistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+//
+//                // Save the full playlist (including tracks) in the owner's section
+//                val ownerId = playlist.owner.id
+//                val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+//                ownerPlaylistRef.setValue(playlist)
+//
+//                // Save the playlist track data for each collaborator
+//                val collaborators = playlist.collaborators ?: emptyList()
+//                for (collaborator in collaborators) {
+//                    val collaboratorPlaylistRef = database.getReference("users").child(collaborator.id).child("playlists").child(playlist.id)
+//                    collaboratorPlaylistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+//                }
+//            }
+//        }
+//    }.addOnFailureListener { exception ->
+//        Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
+//    }
+//}
+fun sanitizeUserId(userId: String): String {
+    return userId.replace(".", "_")
+}
+fun savePlaylists(userId: String, playlists: List<Playlist>?) {
+    if (playlists == null) return
+
+    val userPlaylistsRef = database.getReference("users").child(userId).child("playlists")
+
+    userPlaylistsRef.get().addOnSuccessListener { dataSnapshot ->
+        val existingPlaylists = dataSnapshot.children.associateBy { it.key }
+
         for (playlist in playlists) {
-            if (playlist.id.isNullOrEmpty()) {
-                Log.e(
-                    "FbRepo_SavePlaylists",
-                    "Playlist ID is null or empty for playlist: ${playlist.name}"
-                )
-                continue
-            }
+            if (playlist.id.isNullOrEmpty()) continue
 
-            // If tracks are null, handle the case
-            if (playlist.tracks.items == null) {
-                Log.e("FbRepo_SavePlaylists", "Tracks are null for playlist: ${playlist.name}, cannot save.")
-                continue
-            }
-
-            // Log the playlist snapshot and track details
-            Log.d("FbRepo_SavePlaylists", "Saving playlist: ${playlist.name}, ID: ${playlist.id}")
-            Log.d("FbRepo_SavePlaylists", "Playlist data snapshot: $playlist")
-
-            // Log track details in the playlist
-            playlist.tracks.items.forEachIndexed { index, track ->
-                Log.d("FbRepo_SavePlaylists", "Track $index: ${track.track.name}, Preview URL: ${track.track.previewUrl}")
-            }
-
-            // Reference to the specific playlist
             val playlistRef = userPlaylistsRef.child(playlist.id)
 
-            // Check if the playlist exists
-            playlistRef.get().addOnSuccessListener { dataSnapshot ->
-                if (dataSnapshot.exists()) {
-                    // Playlist exists, update it
-                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Log.d("FbRepo_SavePlaylists", "Playlist ${playlist.name} updated successfully for user $userId")
+            if (existingPlaylists.containsKey(playlist.id)) {
+                val existingPlaylistTracks = existingPlaylists[playlist.id]?.child("tracks")?.child("items")?.children?.mapNotNull {
+                    it.getValue(PlaylistTrack::class.java)
+                }?.toMutableList() ?: mutableListOf()
+
+                val newPlaylistTracks = playlist.tracks.items?.map { it } ?: emptyList()
+
+                if (newPlaylistTracks.isNotEmpty()) {
+                    val updatedPlaylistTracks = newPlaylistTracks.map { newTrack ->
+                        val existingTrack = existingPlaylistTracks.find { it.track.id == newTrack.track.id }
+
+                        if (existingTrack != null) {
+                            existingTrack.copy(
+                                voteCount = existingTrack.voteCount ?: 0,
+                                added_by = existingTrack.added_by ?: AddedBy(),
+                                addedCount = existingTrack.addedCount ?: 0,
+                                lastUpdated = existingTrack.lastUpdated ?: System.currentTimeMillis(),
+                                voters = existingTrack.voters.takeIf { it.isNotEmpty() } ?: mutableListOf()
+                            )
                         } else {
-                            Log.e("FbRepo_SavePlaylists", "Failed to update playlist ${playlist.name} for user $userId", task.exception)
+                            PlaylistTrack(
+                                track = newTrack.track,
+                                voteCount = 0,
+                                added_by = newTrack.added_by,
+                                addedCount = 0,
+                                lastUpdated = System.currentTimeMillis(),
+                                voters = mutableListOf()
+                            )
                         }
                     }
+
+                    val tracksToAdd = newPlaylistTracks.filter { newTrack ->
+                        existingPlaylistTracks.none { it.track.id == newTrack.track.id }
+                    }
+
+                    val finalUpdatedTracks = updatedPlaylistTracks + tracksToAdd
+
+                    // Check if the user is the owner or a collaborator
+                    val ownerId = playlist.owner.id
+                    val collaborators = playlist.collaborators ?: emptyList()
+
+                    if (ownerId == userId) {
+                        // User is the owner, update their own playlist with full data
+                        playlistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+                    } else if (collaborators.any { it.id == userId }) {
+                        // User is a collaborator, update only the track data, not other metadata
+                        val collaboratorTrackEntries = finalUpdatedTracks.map { track ->
+                            PlaylistTrack(
+                                track = track.track,
+                                voteCount = 0, // Reset metadata for the collaborator
+                                added_by = AddedBy(),
+                                addedCount = 0,
+                                lastUpdated = System.currentTimeMillis(),
+                                voters = mutableListOf()
+                            )
+                        }
+
+                        // Save only the track data for the collaborator, without metadata
+                        playlistRef.child("tracks").child("items").setValue(collaboratorTrackEntries)
+
+                        // Save only metadata in the collaborator's playlist section (playlist ID, owner ID, and collaborators)
+                        val collaboratorMetadata = playlist.copy(
+                            description = "", // Empty description
+                            externalUrls = ExternalUrls(), // Empty externalUrls
+                            href = "", // Empty href
+                            images = playlist.images, // Empty images
+                            name = playlist.name, // Empty name or keep default
+                            public = null, // Empty public
+                            snapshotId = "", // Empty snapshotId
+                            tracks = PlaylistTracks(), // Empty tracks
+                            type = "", // Empty type
+                            uri = "", // Empty uri
+                            totalVotes = 0, // Empty votes
+                            lastModified = System.currentTimeMillis(), // Empty lastModified
+                            owner = playlist.owner, // Include owner
+                            collaborators = playlist.collaborators, // Include collaborators
+                            id = playlist.id // Include playlist ID
+                        )
+
+                        playlistRef.setValue(collaboratorMetadata)
+
+                        // Save the same for the owner's playlist (keeping the full metadata intact)
+                        val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+                        ownerPlaylistRef.child("tracks").child("items").setValue(finalUpdatedTracks)
+                    }
+
                 } else {
-                    // Playlist doesn't exist, save it with empty tracks if tracks are null
-                    if (playlist.tracks.items.isNullOrEmpty()) {
-                        Log.w("FbRepo_SavePlaylists", "Tracks are empty for playlist ${playlist.name}, saving with empty tracks.")
-                    }
-                    // Save the new playlist (even if tracks are empty)
-                    playlistRef.setValue(playlist).addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Log.d("FbRepo_SavePlaylists", "New playlist ${playlist.name} saved successfully for user $userId")
-                        } else {
-                            Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name} for user $userId", task.exception)
-                        }
+                    Log.d("FbRepo_SavePlaylists", "No new tracks to add, keeping existing tracks for playlist ${playlist.name}")
+                }
+            } else {
+                // Playlist doesn't exist, save it as a new playlist
+                playlistRef.setValue(playlist).addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Log.e("FbRepo_SavePlaylists", "Failed to save new playlist ${playlist.name}")
                     }
                 }
-            }.addOnFailureListener { exception ->
-                Log.e("FbRepo_SavePlaylists", "Error checking existing playlist for user $userId: ${playlist.id}", exception)
+
+                // Save empty track data in the current user's playlist section
+                val emptyTrackEntries = playlist.tracks.items?.map {
+                    PlaylistTrack(
+                        track = it.track,
+                        voteCount = 0,
+                        added_by = AddedBy(),
+                        addedCount = 0,
+                        lastUpdated = System.currentTimeMillis(),
+                        voters = mutableListOf()
+                    )
+                } ?: emptyList()
+
+                playlistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+
+                // Save the full playlist (including tracks) in the owner's section
+                val ownerId = playlist.owner.id
+                Log.d("ownerid path", ownerId)
+
+                val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlist.id)
+
+                ownerPlaylistRef.setValue(playlist)
+
+                // Save the playlist track data for each collaborator
+                val collaborators = playlist.collaborators ?: emptyList()
+                for (collaborator in collaborators) {
+                    val collaboratorPlaylistRef = database.getReference("users").child(collaborator.id).child("playlists").child(playlist.id)
+                    collaboratorPlaylistRef.child("tracks").child("items").setValue(emptyTrackEntries)
+                }
             }
         }
+    }.addOnFailureListener { exception ->
+        Log.e("FbRepo_SavePlaylists", "Error fetching existing playlists: ", exception)
     }
-
+}
 
 
     fun savePlaylists(playlists: List<Playlist>) {
@@ -502,11 +1120,20 @@ class FirebaseRepository(private val context: Context) {
             return
         }
 
+        val userId = getUserId(context) // Get current user ID
+        if (userId == null) {
+            Log.e("FirebaseRepository", "User ID is null, cannot fetch album details.")
+            callback(null)
+            return
+        }
+
+        val userAlbumsRef = database.getReference("users").child(userId).child("albums")
+
         // Log the start of the method
         Log.d("getAlbum", "Fetching album with ID: $albumId")
 
-        albumsRef.child(albumId).get()
-            .addOnSuccessListener { dataSnapshot ->
+        userAlbumsRef.child(albumId).addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Log the success of the database query
                 Log.d("getAlbum", "Successfully fetched data for album ID: $albumId")
 
@@ -524,13 +1151,15 @@ class FirebaseRepository(private val context: Context) {
                     callback(null)
                 }
             }
-            .addOnFailureListener { exception ->
+
+            override fun onCancelled(error: DatabaseError) {
                 // Log the failure
-                Log.e("getAlbum", "Failed to fetch album with ID: $albumId", exception)
+                Log.e("getAlbum", "Failed to fetch album with ID: $albumId", error.toException())
 
                 // Call the callback with null in case of failure
                 callback(null)
             }
+        })
     }
 
 
@@ -725,6 +1354,8 @@ class FirebaseRepository(private val context: Context) {
                             .children.mapNotNull { it.getValue(User::class.java) }
                         val totalVotes = playlistSnapshot.child("totalVotes").getValue(Int::class.java) ?: 0
                         val lastModified = playlistSnapshot.child("lastModified").getValue(Long::class.java) ?: System.currentTimeMillis()
+                        val ownerSnapshot = playlistSnapshot.child("owner")
+                        val owner = ownerSnapshot.getValue(User::class.java) ?: User()
 
                         // Fetch the images
                         val images = mutableListOf<Image>()
@@ -749,21 +1380,25 @@ class FirebaseRepository(private val context: Context) {
                                 val albumName = trackSnapshot.child("track/album/name").getValue(String::class.java) ?: "Unknown Album"
                                 val voteCount = trackSnapshot.child("voteCount").getValue(Int::class.java) ?: 0
                                 val lastUpdated = trackSnapshot.child("lastUpdated").getValue(Long::class.java) ?: System.currentTimeMillis()
+                                val externalUrls = trackSnapshot.child("added_by/externalUrls").getValue(ExternalUrls::class.java) ?: ExternalUrls()
+                                val added_by_track = trackSnapshot.child("track/added_by").getValue(User::class.java) ?: User()
 
                                 val track = Track(
                                     id = trackId,
                                     name = trackName,
+                                    added_by = added_by_track,
                                     artists = listOf(Artist(name = artistName)),
                                     album = Album(name = albumName)
                                 )
+                                val added_by = AddedBy(externalUrls = externalUrls)
 
                                 val playlistTrack = PlaylistTrack(
                                     track = track,
                                     voteCount = voteCount,
                                     lastUpdated = lastUpdated,
-                                    addedBy = User(),
+                                    added_by = added_by,
                                     addedCount = 0,
-                                    voters = mutableSetOf()
+                                    voters = mutableListOf()
 
                                 )
                                 tracks.add(playlistTrack)
@@ -780,7 +1415,8 @@ class FirebaseRepository(private val context: Context) {
                             collaborators = collaborators,
                             totalVotes = totalVotes,
                             lastModified = lastModified,
-                            images = images  // Added images field here
+                            images = images,  // Added images field here
+                            owner = owner
                         )
                         playlists.add(playlist)
                     } catch (e: Exception) {
@@ -802,13 +1438,22 @@ class FirebaseRepository(private val context: Context) {
 
 
     fun getAlbumTracks(albumId: String, callback: (List<Track>?) -> Unit) {
-        val albumTracksRef = FirebaseDatabase.getInstance().getReference("albums/$albumId/tracks/tracks")
-
-        albumTracksRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        // Reference to the album's tracks in the Firebase Database
+        albumsRef.child(albumId).child("tracks").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // Convert DataSnapshot to a list of Track objects
-                val tracks = snapshot.children.mapNotNull { it.getValue(Track::class.java) }
-                callback(tracks)
+                // Convert the DataSnapshot to TrackResponse
+                val trackResponse = snapshot.getValue(TopTracksResponse::class.java)
+
+                // Check if TrackResponse is valid
+                if (trackResponse != null) {
+                    // Extract the list of tracks from TrackResponse
+                    val tracks = trackResponse.items
+                    // Return the list of tracks through the callback
+                    callback(tracks)
+                } else {
+                    Log.e("FirebaseRepository", "TrackResponse is null for album ID: $albumId")
+                    callback(null)
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -816,7 +1461,7 @@ class FirebaseRepository(private val context: Context) {
                 callback(null)
             }
         })
-    }
+    }  // Fetch all tracks
 
     // Fetch all tracks
     fun getAllTracks(callback: (List<SpotifyTrack>?) -> Unit) {
@@ -1224,6 +1869,25 @@ fun saveLikedSongs(userId: String, tracks: List<Track>?) {
     fun getPlaylistTracks(playlistId: String, callback: (Playlist?) -> Unit) {
         val playlistRef = playlistsRef.child(playlistId)
         playlistRef.get().addOnSuccessListener { snapshot ->
+            Log.d("snapshotx",snapshot.toString())
+
+            if (snapshot.exists()) {
+                val playlistTracks = snapshot.getValue(Playlist::class.java)
+                callback(playlistTracks)
+            } else {
+                callback(null)
+            }
+        }.addOnFailureListener {
+            callback(null)
+        }
+    }
+
+    fun getPlaylistTracksOwner(playlistId: String,ownerId : String, callback: (Playlist?) -> Unit) {
+        Log.d("FirebaseDebug", "Fetching path: /$ownerId/playlists/$playlistId")
+
+        val playlistRef = database.getReference("users").child(ownerId).child("playlists").child(playlistId)
+        playlistRef.get().addOnSuccessListener { snapshot ->
+            Log.d("snapshotx",snapshot.toString())
             if (snapshot.exists()) {
                 val playlistTracks = snapshot.getValue(Playlist::class.java)
                 callback(playlistTracks)
@@ -1236,55 +1900,241 @@ fun saveLikedSongs(userId: String, tracks: List<Track>?) {
     }
 
 
-    fun updateTrackVote(playlistId: String, track: PlaylistTrack, userId: String, callback: (Boolean) -> Unit) {
-        playlistsRef.child(playlistId).child("tracks").child("items").get()
+//    fun updateTrackVote(playlistId: String, track: PlaylistTrack, userId: String, callback: (Boolean) -> Unit) {
+//
+//        val playlistRef = playlistsRef.child(playlistId)
+//
+//        // Fetch the owner ID from the playlist reference
+//        playlistRef.child("owner").child("id").get().addOnSuccessListener { ownerSnapshot ->
+//            val ownerId = ownerSnapshot.value.toString()
+//
+//            database.getReference("users").child(ownerId).child(playlistId).child("tracks")
+//                .child("items").get()
+//                .addOnSuccessListener { snapshot ->
+//                    var found = false
+//                    for (child in snapshot.children) {
+//                        val currentTrackId = child.child("track").child("id").value.toString()
+//                        if (currentTrackId == track.track.id) {
+//                            // Retrieve current voteCount
+//                            val currentVoteCount =
+//                                child.child("voteCount").getValue(Int::class.java) ?: 0
+//
+//                            // Use GenericTypeIndicator to safely cast the votedBy field to List<String>
+//                            val votedByIndicator = object : GenericTypeIndicator<List<String>>() {}
+//                            val votedBy =
+//                                child.child("voters").getValue(votedByIndicator) ?: listOf<String>()
+//
+//                            if (votedBy.contains(userId)) {
+//                                // User has already voted
+//                                Log.e(
+//                                    "updateTrackVote",
+//                                    "User $userId has already voted for this track."
+//                                )
+//                                callback(false)
+//                                return@addOnSuccessListener
+//                            }
+//
+//                            // Add the user to the votedBy list and increment the vote count
+//                            val updatedVotedBy =
+//                                votedBy + userId  // Immutably add the userId to the list
+//                            val newVoteCount = currentVoteCount + 1
+//
+//                            // Update the Firebase entry with the new vote count and updated list of voters
+//                            val updates = mapOf(
+//                                "voteCount" to newVoteCount,
+//                                "voters" to updatedVotedBy  // Using the updated immutable list
+//                            )
+//
+//                            child.ref.updateChildren(updates).addOnCompleteListener { task ->
+//                                callback(task.isSuccessful)
+//                            }
+//
+//                            found = true
+//                            break
+//                        }
+//                    }
+//
+//                    if (!found) {
+//                        Log.e("updateTrackVote", "Track with ID ${track.track.id} not found.")
+//                        callback(false)
+//                    }
+//                }
+//                .addOnFailureListener {
+//                    Log.e("updateTrackVote", "Error fetching tracks: ${it.message}")
+//                    callback(false)
+//                }
+//        }
+//    }
+fun updateTrackVote(playlistId: String, track: PlaylistTrack, userId: String, callback: (Boolean) -> Unit) {
+    val playlistRef = playlistsRef.child(playlistId)
+
+    // Fetch the owner ID from the playlist reference
+    playlistRef.child("owner").child("id").get().addOnSuccessListener { ownerSnapshot ->
+        val ownerId = ownerSnapshot.value.toString()
+
+        // Query for the tracks inside the owner's playlist (not the user's)
+        val tracksRef = database.getReference("users")
+            .child(ownerId) // Referring to the playlist owner
+            .child("playlists") // The parent of playlists
+            .child(playlistId)  // The specific playlist
+            .child("tracks")
+            .child("items")
+
+        // Query for the track with the given track ID
+        tracksRef.orderByChild("track/id").equalTo(track.track.id).limitToFirst(1).get()
             .addOnSuccessListener { snapshot ->
-                var found = false
-                for (child in snapshot.children) {
-                    val currentTrackId = child.child("track").child("id").value.toString()
-                    if (currentTrackId == track.track.id) {
-                        // Retrieve current voteCount
-                        val currentVoteCount = child.child("voteCount").getValue(Int::class.java) ?: 0
+                val trackSnapshot = snapshot.children.firstOrNull()
+                if (trackSnapshot != null) {
+                    val currentVoteCount = trackSnapshot.child("voteCount").getValue(Int::class.java) ?: 0
 
-                        // Use GenericTypeIndicator to safely cast the votedBy field to List<String>
-                        val votedByIndicator = object : GenericTypeIndicator<List<String>>() {}
-                        val votedBy = child.child("votedBy").getValue(votedByIndicator) ?: listOf<String>()
+                    // Use GenericTypeIndicator to safely cast the voters field to List<String>
+                    val votedByIndicator = object : GenericTypeIndicator<List<String>>() {}
+                    val votedBy = trackSnapshot.child("voters").getValue(votedByIndicator) ?: listOf()
 
-                        if (votedBy.contains(userId)) {
-                            // User has already voted
-                            Log.e("updateTrackVote", "User $userId has already voted for this track.")
-                            callback(false)
-                            return@addOnSuccessListener
-                        }
-
+                    if (votedBy.contains(userId)) {
+                        // User has already voted
+                        Log.e("updateTrackVote", "User $userId has already voted for this track.")
+                        callback(false)
+                    } else {
                         // Add the user to the votedBy list and increment the vote count
-                        val updatedVotedBy = votedBy + userId  // Immutably add the userId to the list
+                        val updatedVotedBy = votedBy + userId
                         val newVoteCount = currentVoteCount + 1
 
-                        // Update the Firebase entry with the new vote count and updated list of voters
+                        // Create the update map for the vote count and voters
                         val updates = mapOf(
                             "voteCount" to newVoteCount,
-                            "votedBy" to updatedVotedBy  // Using the updated immutable list
+                            "voters" to updatedVotedBy
                         )
 
-                        child.ref.updateChildren(updates).addOnCompleteListener { task ->
-                            callback(task.isSuccessful)
-                        }
-
-                        found = true
-                        break
+                        // Perform the update
+                        trackSnapshot.ref.updateChildren(updates)
+                            .addOnCompleteListener { task ->
+                                callback(task.isSuccessful)
+                            }
                     }
-                }
-
-                if (!found) {
+                } else {
                     Log.e("updateTrackVote", "Track with ID ${track.track.id} not found.")
                     callback(false)
                 }
-            }
-            .addOnFailureListener {
+            }.addOnFailureListener {
                 Log.e("updateTrackVote", "Error fetching tracks: ${it.message}")
                 callback(false)
             }
     }
+}
+
+        fun getTracks(callback: (List<Track>) -> Unit) {
+            tracksRef.get()
+                .addOnSuccessListener { snapshot ->
+                    val tracks = snapshot.children.mapNotNull { it.getValue(Track::class.java) }
+                    callback(tracks)
+                }
+                .addOnFailureListener {
+                    callback(emptyList())
+                }
+
+        }
+
+    fun getCollaborativePlaylist(playlist: Playlist, callback: (Playlist?) -> Unit) {
+        val ownerId = playlist.owner.id
+
+        val userPlaylistRef = database.getReference("users")
+            .child(ownerId)
+            .child("playlists")
+            .child(playlist.id)
+
+        userPlaylistRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("FirebaseRepository", "Fetched playlist snapshot: ${snapshot.value}")
+
+                if (snapshot.exists()) {
+                    try {
+                        val playlistId = snapshot.key ?: return
+                        val playlistName = snapshot.child("name").getValue(String::class.java) ?: "Unnamed Playlist"
+                        val description = snapshot.child("description").getValue(String::class.java) ?: ""
+                        val collaborators = snapshot.child("collaborators")
+                            .children.mapNotNull { it.getValue(User::class.java) }
+                        val totalVotes = snapshot.child("totalVotes").getValue(Int::class.java) ?: 0
+                        val lastModified = snapshot.child("lastModified").getValue(Long::class.java) ?: System.currentTimeMillis()
+                        val ownerSnapshot = snapshot.child("owner")
+                        val owner = ownerSnapshot.getValue(User::class.java) ?: User()
+
+                        val images = mutableListOf<Image>()
+                        snapshot.child("images").children.forEach { imageSnapshot ->
+                            val url = imageSnapshot.child("url").getValue(String::class.java)
+                            val height = imageSnapshot.child("height").getValue(Int::class.java) ?: 0
+                            val width = imageSnapshot.child("width").getValue(Int::class.java) ?: 0
+
+                            if (url != null) {
+                                val image = Image(height, url, width)
+                                images.add(image)
+                            }
+                        }
+
+                        val tracks = mutableListOf<PlaylistTrack>()
+                        snapshot.child("tracks/items").children.forEach { trackSnapshot ->
+                            try {
+                                val trackId = trackSnapshot.child("track/id").getValue(String::class.java) ?: return@forEach
+                                val trackName = trackSnapshot.child("track/name").getValue(String::class.java) ?: "Untitled Track"
+                                val artistName = trackSnapshot.child("track/artists/0/name").getValue(String::class.java) ?: "Unknown Artist"
+                                val albumName = trackSnapshot.child("track/album/name").getValue(String::class.java) ?: "Unknown Album"
+                                val voteCount = trackSnapshot.child("voteCount").getValue(Int::class.java) ?: 0
+                                val lastUpdated = trackSnapshot.child("lastUpdated").getValue(Long::class.java) ?: System.currentTimeMillis()
+                                val externalUrls = trackSnapshot.child("added_by/externalUrls").getValue(ExternalUrls::class.java) ?: ExternalUrls()
+                                val addedByTrack = trackSnapshot.child("track/added_by").getValue(User::class.java) ?: User()
+
+                                val track = Track(
+                                    id = trackId,
+                                    name = trackName,
+                                    added_by = addedByTrack,
+                                    artists = listOf(Artist(name = artistName)),
+                                    album = Album(name = albumName)
+                                )
+                                val addedBy = AddedBy(externalUrls = externalUrls)
+
+                                val playlistTrack = PlaylistTrack(
+                                    track = track,
+                                    voteCount = voteCount,
+                                    lastUpdated = lastUpdated,
+                                    added_by = addedBy,
+                                    addedCount = 0,
+                                    voters = mutableListOf()
+                                )
+                                tracks.add(playlistTrack)
+                            } catch (e: Exception) {
+                                Log.e("FirebaseRepository", "Error mapping track data", e)
+                            }
+                        }
+
+                        val playlist = Playlist(
+                            id = playlistId,
+                            name = playlistName,
+                            description = description,
+                            tracks = PlaylistTracks(tracks.size, tracks),
+                            collaborators = collaborators,
+                            totalVotes = totalVotes,
+                            lastModified = lastModified,
+                            images = images,
+                            owner = owner
+                        )
+
+                        callback(playlist) // Return the playlist directly
+                    } catch (e: Exception) {
+                        Log.e("FirebaseRepository", "Error mapping playlist data", e)
+                        callback(null) // Return null if error occurs
+                    }
+                } else {
+                    Log.e("FirebaseRepository", "Playlist not found.")
+                    callback(null) // Return null if playlist does not exist
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseRepository", "Error fetching playlist", error.toException())
+                callback(null) // Return null in case of cancellation
+            }
+        })
+    }
 
 }
+

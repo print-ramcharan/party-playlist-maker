@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,12 +35,13 @@ import com.example.partyplaylist.services.SpotifySyncService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
-public class HomePageActivity extends AppCompatActivity implements HomePageFragment.OnArtistSelectedListener, LibraryFragment.FragmentTransactionListener{
+public class HomePageActivity extends AppCompatActivity implements HomePageFragment.OnArtistSelectedListener, LibraryFragment.FragmentTransactionListener, PlaylistDetailFragment.FragmentTransactionListener {
 
     private static final String TAG = "HomePageActivity";
     private ProgressBar songProgressBar;
     private BottomNavigationView bottomNavigationView;
     private ViewPager2 viewPager;
+//    private NavHostFragment navHostFragment;
     private MediaPlayerService mediaPlayerService;
     private boolean isBound = false;
     private boolean isPlaying = false;
@@ -82,10 +84,20 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
 //        songProgressBar = findViewById(R.id.songProgressBar);
         initializeViews();
         setupViewPagerAndBottomNavigation();
-        setupServiceConnections();
         setupListeners();
+        setupServiceConnections();
+
 //        setupSeekBar();
+//         PlaylistDetailFragment.FragmentTrasactionListener = this;
         songTitleTextView = findViewById(R.id.song_title);
+        // Get the NavHostFragment
+//        navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+
+        // Initialize the NavController
+//        NavController navController = navHostFragment.getNavController();
+        // Set up the ActionBar (if you have one)
+//        NavigationUI.setupActionBarWithNavController(this, navController);
+
 
         songTitleTextView.setOnSwipeListener(new SwipeableTextView.OnSwipeListener() {
             @Override
@@ -109,10 +121,15 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
         Log.d(TAG, "onCreate: HomePageActivity created");
     }
 
+    //    @Override
+//    public boolean onSupportNavigateUp() {
+//        NavController navController = NavHostFragment.findNavController(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment));
+//        return navController.navigateUp() || super.onSupportNavigateUp();
+//    }
     private void initializeViews() {
         bottomNavigationView = findViewById(R.id.bottomnavigationview);
         viewPager = findViewById(R.id.view_page);
-
+        viewPager.setUserInputEnabled(false);
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             // Check if the back stack is empty
             boolean isBackStackEmpty = getSupportFragmentManager().getBackStackEntryCount() == 0;
@@ -291,6 +308,36 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
             songTitleTextView.setText(title);
         }else songTitleTextView.setText("title got null");
     }
+//    @NonNull
+//    @Override
+//    public void loadSearchFragment(Fragment searchFragment,String tag) {
+//        Log.d(TAG, "Loading SearchFragment");
+//
+//        // Create a new instance of SearchFragment
+////        Fragment searchFragment = new SearchFragment();
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//
+//        // Optionally adjust UI elements
+//        FrameLayout searchContainer = findViewById(R.id.search_view);
+//        if (searchContainer != null) {
+//            searchContainer.setVisibility(View.VISIBLE);
+//        }
+//
+//        // Hide the bottom navigation view if needed
+////        if (bottomNavigationView != null) {
+////            bottomNavigationView.setVisibility(View.GONE);
+////        }
+//
+//        // Perform the fragment transaction
+//        Log.d(TAG, "Replacing current fragment with SearchFragment");
+//        fragmentTransaction.replace(R.id.homepage, searchFragment);
+//        fragmentTransaction.addToBackStack(null);
+//        fragmentTransaction.commit();
+//
+//        Log.d(TAG, "Fragment transaction committed");
+//    }
+
 
     @Override
     public void onArtistSelected(String artistName) {
@@ -340,7 +387,20 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
-
+    @NonNull
+    @Override
+    public void loadSearchFragment(Fragment fragment, String tag) {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        Toast.makeText(this, "Loading SearchFragment", Toast.LENGTH_SHORT).show();
+        Log.d("HomePageActivity", "loadSearchFragment called");
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_library, fragment, tag);
+        fragmentTransaction.addToBackStack(tag);
+        fragmentTransaction.commit();
+    }
     @Override
     public void replaceFragment(Fragment fragment, String tag) {
         if (bottomNavigationView != null) {

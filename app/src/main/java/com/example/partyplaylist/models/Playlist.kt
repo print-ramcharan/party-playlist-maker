@@ -2,12 +2,13 @@ package com.example.partyplaylist.models
 
 import com.example.partyplaylist.data.Song
 import com.example.partyplaylist.data.User
+import com.google.firebase.ktx.Firebase
 import com.google.gson.annotations.SerializedName
 
 data class Playlist(
     @SerializedName("collaborative") val collaborative: Boolean = true,
     @SerializedName("description") val description: String? = "",
-    @SerializedName("externalUrls") val externalUrls: ExternalUrls = ExternalUrls(),
+    @SerializedName("external_urls") val externalUrls: ExternalUrls = ExternalUrls(),
     @SerializedName("href") val href: String = "",
     @SerializedName("id") val id: String = "",
     @SerializedName("images") val images: List<Image>? = emptyList(),
@@ -18,7 +19,7 @@ data class Playlist(
     @SerializedName("tracks") var tracks: PlaylistTracks = PlaylistTracks(),
     @SerializedName("type") val type: String = "",
     @SerializedName("uri") val uri: String = "",
-    @SerializedName("collaborators") val collaborators: List<User> = emptyList(),
+    @SerializedName("collaborators") var collaborators: List<User> = emptyList(),
     @SerializedName("totalVotes") val totalVotes: Int = 0,
     @SerializedName("lastModified") val lastModified: Long = System.currentTimeMillis()
 ) {
@@ -36,37 +37,53 @@ data class PlaylistTrackss(
 
     @SerializedName("tracks") var items: List<Track> = emptyList()
 )
+//@Serializable
+//data class PlaylistTracks(
+//    @SerializedName("total") val total: Int = 0,
+//    @SerializedName("items") var items: List<PlaylistTrack> = emptyList()
+//)
+
 data class PlaylistTracks(
     @SerializedName("total") val total: Int = 0,
     @SerializedName("items") var items: List<PlaylistTrack> = emptyList()
 )
 
+
 data class PlaylistTrack(
     @SerializedName("track") val track: Track = Track(),
     @SerializedName("voteCount") var voteCount: Int = 0,
-    @SerializedName("addedBy") val addedBy: User = User(),
+    @SerializedName("added_by") val added_by: AddedBy = AddedBy(),
     @SerializedName("addedCount") val addedCount: Int = 0,
     @SerializedName("lastUpdated") val lastUpdated: Long = System.currentTimeMillis(),
-    @SerializedName("votedBy") var voters: MutableSet<String> = mutableSetOf()
-) {
-    fun isValidTrack(): Boolean {
+    @SerializedName("voters") var voters: MutableList<String> = mutableListOf() // Store as List for Firebase
+){
 
-        return track != null && track.id?.isNotEmpty() ==true
-    }
-    // Function to check if a user has already voted
-    fun hasVoted(userId: String): Boolean {
-        return voters.contains(userId)
+    // Convert MutableList<User> to List<String> (User IDs) before saving to Firebase
+//    fun toFirebaseVoters(): List<String> {
+//        return voters.map { it.id } // Extract the 'id' from each User object
+//    }
+//
+//    // Convert List<String> (User IDs) back to MutableList<User> after reading from Firebase
+//    fun fromFirebaseVoters(firebaseVoters: List<String>, usersList: List<User>) {
+//        voters = usersList.filter { it.id in firebaseVoters }.toMutableList()
+//    }
+
+
+//     Convert MutableSet to List before saving to Firebase
+    fun toFirebaseVoters(): List<String> {
+        return voters.toList()
     }
 
-    // Function to add a vote for a user
-    fun vote(userId: String) {
-        if (!hasVoted(userId)) {
-            // Add the user's ID to the voters set
-            voters.add(userId)
-            // Increment vote count
-            voteCount++
-        }
+//     Convert List back to MutableSet after reading from Firebase
+    fun fromFirebaseVoters(firebaseVoters: List<String>) {
+        voters = firebaseVoters.toMutableList() // Convert List back to MutableList (from Firebase)
     }
+
+
+
+
+
+
 }
 
 data class TracksResponse(

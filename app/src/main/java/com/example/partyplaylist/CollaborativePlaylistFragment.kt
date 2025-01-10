@@ -78,7 +78,7 @@ class CollaborativePlaylistFragment : Fragment() {
                                             id = it.id,
                                             name = it.name,
                                             description = it.description,
-                                            externalUrls = it.external_urls,
+                                            externalUrls = it.externalUrls,
                                             href = it.href,
                                             images = it.images,
                                             owner = it.owner,

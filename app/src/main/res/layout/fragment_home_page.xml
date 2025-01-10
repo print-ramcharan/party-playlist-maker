@@ -7,29 +7,15 @@
     android:background="@android:color/white"
     android:id="@+id/homepage">
 
-    <HorizontalScrollView
-        android:id="@+id/horizontalscroller"
-        android:layout_width="370dp"
-        android:layout_height="297dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="330dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="67dp"
-        android:background="@drawable/spotify_green_icon"
-        android:scrollbars="horizontal">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/album_recyclerview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:visibility="visible" />
-
-    </HorizontalScrollView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/album_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="184dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="320dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="230dp"
+        android:visibility="visible" />
 
     <LinearLayout
         android:layout_width="203dp"

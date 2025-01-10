@@ -16,7 +16,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +28,7 @@ import com.example.partyplaylist.utils.SharedPreferencesManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import kotlin.Unit;
 
@@ -41,7 +41,7 @@ public class LibraryFragment extends Fragment {
     private FirebaseRepository firebaseRepository;
     private List<Playlist> allPlaylists = new ArrayList<>();
     private ImageView userPhoto; // Add this for user photo
-
+    //    private TextView playlistName ;
     public interface FragmentTransactionListener {
         void replaceFragment(Fragment fragment, String tag);
     }
@@ -56,7 +56,7 @@ public class LibraryFragment extends Fragment {
         searchView = view.findViewById(R.id.search_view);
         playlistsRecyclerView = view.findViewById(R.id.playlists_recycler_view);
         userPhoto = view.findViewById(R.id.user_photo); // Initialize user photo
-
+//        playlistName = view.findViewById(R.id.playlist_title);
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Initialize the adapter with a click listener
@@ -109,20 +109,80 @@ public class LibraryFragment extends Fragment {
         fragmentTransactionListener = null;
     }
 
-    private void fetchPlaylists() {
-        firebaseRepository.getAllPlaylists(playlists -> {
-            if (playlists != null) {
-                Log.d("LibraryFragment", "Fetched playlists: " + playlists);
-                allPlaylists.clear();
-                allPlaylists.addAll(playlists);
-                playlistAdapter.clearPlaylists();
-                playlistAdapter.addPlaylists(playlists);
-            } else {
-                Log.e("LibraryFragment", "Failed to fetch playlists");
-                Toast.makeText(getContext(), "Failed to fetch playlists", Toast.LENGTH_SHORT).show();
-            }
-        });
+private void fetchPlaylists() {
+    // Get the current user ID from shared preferences
+    String userId = SharedPreferencesManager.getUserId(requireContext());
+
+    // Handle the case when the user ID is not found
+    if (userId == null) {
+        Toast.makeText(getContext(), "Please log in to view your playlists.", Toast.LENGTH_SHORT).show();
+        return;
     }
+
+    // Show loading indicator (if applicable)
+    firebaseRepository.getAllPlaylists(playlists -> {
+        if (playlists != null) {
+            List<Playlist> filteredPlaylists = new ArrayList<>();
+            int playlistsCount = playlists.size();
+            AtomicInteger playlistsFetchedCount = new AtomicInteger();
+
+            // Filter playlists where the user is the owner or a collaborator
+            for (Playlist playlist : playlists) {
+                boolean isOwner = playlist.getOwner() != null && userId.equals(playlist.getOwner().getId());
+                Log.d("owner value", playlist.getName() + playlist.getOwner());
+                boolean isCollaborator = playlist.getCollaborators() != null &&
+                        playlist.getCollaborators().stream().anyMatch(collaborator -> userId.equals(collaborator.getId()));
+
+                if (isCollaborator) {
+                    // Fetch collaborative playlist
+                    firebaseRepository.getCollaborativePlaylist(playlist, collaboratorPlaylist -> {
+                        if (collaboratorPlaylist != null) {
+                            filteredPlaylists.add(collaboratorPlaylist);
+                            Log.d("collaborative ", String.valueOf(collaboratorPlaylist));
+                        } else {
+                            Log.e("FirebaseRepository", "Collaborative playlist not found.");
+                        }
+
+                        // Increment the counter when the collaborative playlist is fetched
+                        playlistsFetchedCount.getAndIncrement();
+
+                        // When all playlists have been processed, update the UI
+                        if (playlistsFetchedCount.get() == playlistsCount) {
+                            updateUI(filteredPlaylists);
+                        }
+
+                        return null;
+                    });
+                }
+
+                if (isOwner) {
+                    filteredPlaylists.add(playlist);
+                    playlistsFetchedCount.getAndIncrement();
+
+                    // Update UI when all playlists are fetched
+                    if (playlistsFetchedCount.get() == playlistsCount) {
+                        updateUI(filteredPlaylists);
+                    }
+                }
+            }
+        } else {
+            Log.e("LibraryFragment", "Failed to fetch playlists.");
+            Toast.makeText(getContext(), "Failed to fetch playlists.", Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+
+    private void updateUI(List<Playlist> filteredPlaylists) {
+        if (!filteredPlaylists.isEmpty()) {
+            Log.d("LibraryFragment", "Fetched playlists for user: " + filteredPlaylists.size());
+            playlistAdapter.clearPlaylists();
+            playlistAdapter.addPlaylists(filteredPlaylists);
+        } else {
+            Log.d("LibraryFragment", "No playlists found for this user.");
+            Toast.makeText(getContext(), "You don't have any playlists.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void filterPlaylists(String query) {
         List<Playlist> filteredPlaylists = new ArrayList<>();
@@ -139,7 +199,13 @@ public class LibraryFragment extends Fragment {
         // Use a Bundle to pass the playlist ID to the detail fragment
         Bundle bundle = new Bundle();
         bundle.putString("playlistId", playlist.getId());
-
+        bundle.putString("playlistName", playlist.getName());
+        bundle.putString("owner", playlist.getOwner().getId());
+        bundle.putString("collaborators", playlist.getCollaborators().toString());
+//        Log.d("playlistname is:",playlist.getName()+playlistName.toString());
+//        if(playlist.getName()!=null) {
+//            playlistName.setText(playlist.getName());
+//        }
         PlaylistDetailFragment playlistDetailFragment = new PlaylistDetailFragment();
         playlistDetailFragment.setArguments(bundle);
 

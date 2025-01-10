@@ -59,6 +59,15 @@
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp" />
         </LinearLayout>
+
+        <!-- Selection Indicator (Checkmark) -->
+        <ImageView
+            android:id="@+id/selectionIndicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_checkmark"
+            android:visibility="gone" /> <!-- Initially hidden -->
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

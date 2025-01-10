@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.partyplaylist.models.Album
+import com.example.partyplaylist.models.Image
 import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.services.MediaPlayerService
@@ -33,6 +34,7 @@ class AlbumTracksFragment : Fragment() {
         }
     }
 
+    private var albumImageUrl : List<Image> = emptyList()
     private lateinit var firebaseRepository: FirebaseRepository
     private lateinit var albumId: String
     private lateinit var albumCoverImageView: ImageView
@@ -45,7 +47,7 @@ class AlbumTracksFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_album_tracks, container, false)
+        val view = inflater.inflate(R.layout.fragment_album_tracks_list, container, false)
 
         // Initialize Firebase repository
         firebaseRepository = FirebaseRepository(requireContext())
@@ -96,6 +98,7 @@ class AlbumTracksFragment : Fragment() {
         Glide.with(this)
             .load(album.images.firstOrNull()?.url)
             .into(albumCoverImageView)
+        albumImageUrl = album.images
         albumNameTextView.text = album.name
         albumArtistTextView.text = album.artists.joinToString(", ") { it.name }
 
@@ -146,8 +149,13 @@ class AlbumTracksFragment : Fragment() {
             fun bind(track: Track) {
                 trackNameTextView.text = track.name
                 track.artists?.joinToString { it.name }.also { artistNameTextView.text = it }
-                artistNameTextView.text = track.durationMs?.toString()
-                val imageUrl = track.album?.images?.firstOrNull()?.url ?: ""
+                val durationInMinutes = (track.durationMs ?: 0) / 60000 // Convert milliseconds to minutes
+                val durationInSeconds = ((track.durationMs ?: 0) % 60000) / 1000 // Get remaining seconds
+
+                val durationText = String.format("%d:%02d", durationInMinutes, durationInSeconds)
+
+                artistNameTextView.text = durationText
+                val imageUrl = albumImageUrl?.firstOrNull()?.url ?: ""
                 if (imageUrl.isNotEmpty()) {
                     Glide.with(itemView.context)
                         .load(imageUrl)

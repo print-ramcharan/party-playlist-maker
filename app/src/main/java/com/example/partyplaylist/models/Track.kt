@@ -1,8 +1,18 @@
 package com.example.partyplaylist.models
 
+import com.example.partyplaylist.data.User
 import com.google.gson.annotations.SerializedName
 
+data class AddedBy(
+    @SerializedName("external_urls") val externalUrls: ExternalUrls = ExternalUrls(),
+    @SerializedName("href") val href: String? = null,
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("type") val type: String? = null,
+    @SerializedName("uri") val uri: String? = null
+)
 data class Track(
+
+    @SerializedName("added_by") val added_by: User = User(),
     @SerializedName("album") val album: Album? = null,
     @SerializedName("artists") val artists: List<Artist>? = null,
     @SerializedName("available_markets") val availableMarkets: List<String>? = null,

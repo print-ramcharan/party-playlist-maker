@@ -7,7 +7,7 @@ data class PlaylistResponse(
     val id: String,
     val name: String,
     val description: String,
-    val external_urls: ExternalUrls,
+    val externalUrls: ExternalUrls,
     val href: String,
     val images: List<Image>,
     val owner: User,
@@ -21,7 +21,7 @@ data class PlaylistResponse(
     val playlists: List<Playlist> = emptyList()
 }
 data class PlaylistResponse2(
-    val playlists: List<Playlist>
+    val items: List<Playlist>
 )
 
 data class PlaylistRequest(

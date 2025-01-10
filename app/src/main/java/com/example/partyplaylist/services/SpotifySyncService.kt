@@ -33,7 +33,7 @@ class SpotifySyncService : Service() {
         Log.d("SpotifySyncService", "Service started")
 //       firebaseRepository.saveUserData()
         fetchAndSaveData()
-        fetchAndSaveData2()
+//        fetchAndSaveData2()
         return START_NOT_STICKY
     }
 
@@ -101,18 +101,48 @@ class SpotifySyncService : Service() {
     }
 
 
-    private fun fetchAndSavePlaylists(userId: String) {
-        Log.d("SpotifySyncService", "Fetching playlists")
-        spotifyDataService.fetchPlaylists { response ->
-            response?.playlists?.let { playlists ->
-                Log.d("SpotifySyncService", "Playlists fetched: ${playlists.size} playlists")
-                playlists.forEach { playlist ->
-                    Log.d("SpotifySyncService", "Saving playlist: ${playlist.name}, Tracks: ${playlist.tracks.items.size}")
-                }
-                firebaseRepository.savePlaylists(userId, playlists)
-            } ?: Log.e("SpotifySyncService", "Failed to fetch playlists")
-        }
+//    private fun fetchAndSavePlaylists(userId: String) {
+//        Log.d("SpotifySyncService", "Fetching playlists")
+//        spotifyDataService.fetchPlaylists { response ->
+//            response?.items?.let { playlists ->
+//                Log.d("SpotifySyncService", "Playlists fetched: ${playlists.size} playlists")
+//                playlists.forEach { playlist ->
+//                    Log.d("SpotifySyncService", "Saving playlist: ${playlist.name}, Tracks: ${playlist.tracks.items.size}")
+//                }
+//
+//                firebaseRepository.savePlaylists(userId, playlists)
+//            } ?: Log.e("SpotifySyncService", "Failed to fetch playlists")
+//        }
+//    }
+private fun fetchAndSavePlaylists(userId: String) {
+    Log.d("SpotifySyncService", "Fetching playlists")
+    spotifyDataService.fetchPlaylists { response ->
+        response?.items?.let { playlists ->
+            Log.d("SpotifySyncService", "Playlists fetched: ${playlists.size} playlists")
+
+            // Filter playlists where the user is the owner or a collaborator
+            val filteredPlaylists = playlists.filter { playlist ->
+                val isOwner = playlist.owner?.id == userId
+                val isCollaborative = playlist.collaborative
+                val isCollaborator = playlist.collaborators?.any { collaborator ->
+                    collaborator.id == userId
+                } ?: false
+
+                // Keep only the ones where the user is the owner or a collaborator
+                isOwner || (isCollaborative && isCollaborator)
+            }
+
+            filteredPlaylists.forEach { playlist ->
+                Log.d("SpotifySyncService", "Saving playlist: ${playlist.name}, Tracks: ${playlist.tracks.items.size}")
+            }
+
+            // Save only filtered playlists
+            firebaseRepository.savePlaylists(userId, filteredPlaylists)
+        } ?: Log.e("SpotifySyncService", "Failed to fetch playlists")
     }
+}
+
+
 
 
     private fun fetchAndSaveLikedSongs(userId: String) {
@@ -169,7 +199,7 @@ class SpotifySyncService : Service() {
 
         Log.d("SpotifySyncService", "Fetching playlists")
         spotifyDataService.fetchPlaylists { response ->
-            response?.playlists?.let {
+            response?.items?.let {
                 Log.d("SpotifySyncService", "Playlists fetched: ${it.size} playlists")
                 firebaseRepository.savePlaylists(it)
             } ?: Log.e("SpotifySyncService", "Failed to fetch playlists")

@@ -3,6 +3,7 @@ package com.example.partyplaylist.data
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Artist
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 data class Song(
     @SerializedName("id") val id: String = "",
