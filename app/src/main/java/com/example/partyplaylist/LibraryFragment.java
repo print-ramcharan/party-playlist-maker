@@ -68,14 +68,20 @@ public class LibraryFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                filterPlaylists(query);
-                return false;
+                filterPlaylists(query); // Filter playlists when the user submits the query
+                return true; // Return true to prevent the default search action
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                filterPlaylists(newText);
-                return false;
+                if (newText.isEmpty()) {
+                    // If the query is empty, show all playlists
+                    playlistAdapter.clearPlaylists();
+                    playlistAdapter.addPlaylists(allPlaylists); // Reset to original playlists
+                } else {
+                    filterPlaylists(newText); // Otherwise, filter based on the query
+                }
+                return true;
             }
         });
 
@@ -175,6 +181,7 @@ private void fetchPlaylists() {
     private void updateUI(List<Playlist> filteredPlaylists) {
         if (!filteredPlaylists.isEmpty()) {
             Log.d("LibraryFragment", "Fetched playlists for user: " + filteredPlaylists.size());
+            allPlaylists.addAll(filteredPlaylists);
             playlistAdapter.clearPlaylists();
             playlistAdapter.addPlaylists(filteredPlaylists);
         } else {
@@ -185,15 +192,43 @@ private void fetchPlaylists() {
 
 
     private void filterPlaylists(String query) {
+        // Log the query to check what value it's receiving
+        Log.d("FilterPlaylists", "Query received: " + query);
+
+        // Trim and convert the query to lowercase
+        String queryLower = query.trim().toLowerCase();
+
+        // Log the trimmed and lowercased query
+        Log.d("FilterPlaylists", "Trimmed and lowercased query: " + queryLower);
+
         List<Playlist> filteredPlaylists = new ArrayList<>();
+
+        // Check if the allPlaylists list is not empty
+        if (allPlaylists.isEmpty()) {
+            Log.d("FilterPlaylists", "No playlists available in allPlaylists.");
+        }
+
+        // Filter playlists based on the query
         for (Playlist playlist : allPlaylists) {
-            if (playlist.getName().toLowerCase().contains(query.toLowerCase())) {
+            String playlistName = playlist.getName().toLowerCase();
+            Log.d("FilterPlaylists", "Checking playlist: " + playlistName);
+
+            if (playlistName.contains(queryLower)) {
+                Log.d("FilterPlaylists", "Playlist matched: " + playlistName);
                 filteredPlaylists.add(playlist);
+            } else {
+                Log.d("FilterPlaylists", "Playlist did not match: " + playlistName);
             }
         }
+
+        // Log the number of filtered playlists
+        Log.d("FilterPlaylists", "Filtered playlists count: " + filteredPlaylists.size());
+
+        // Clear the existing playlists and add filtered ones
         playlistAdapter.clearPlaylists();
         playlistAdapter.addPlaylists(filteredPlaylists);
     }
+
 
     private Unit openPlaylistDetail(Playlist playlist) {
         // Use a Bundle to pass the playlist ID to the detail fragment

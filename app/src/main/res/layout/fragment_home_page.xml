@@ -17,6 +17,16 @@
         android:layout_marginBottom="230dp"
         android:visibility="visible" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tracks_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="184dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="540dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="0dp"
+        android:visibility="visible" />
+
     <LinearLayout
         android:layout_width="203dp"
         android:layout_height="230dp"
@@ -38,12 +48,17 @@
                 android:id="@+id/recentimg5"
                 android:layout_width="57dp"
                 android:layout_height="54dp"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext5"
                 android:layout_width="127dp"
                 android:layout_height="54dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -57,12 +72,17 @@
                 android:id="@+id/recentimg6"
                 android:layout_width="58dp"
                 android:layout_height="55dp"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext6"
                 android:layout_width="129dp"
                 android:layout_height="55dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -76,12 +96,17 @@
                 android:id="@+id/recentimg7"
                 android:layout_width="58dp"
                 android:layout_height="match_parent"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext7"
                 android:layout_width="126dp"
-                android:layout_height="51dp"
+                android:layout_height="match_parent"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -95,11 +120,16 @@
                 android:id="@+id/recentimg8"
                 android:layout_width="59dp"
                 android:layout_height="match_parent"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext8"
                 android:layout_width="126dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:layout_height="match_parent"
                 android:text="TextView" />
         </LinearLayout>
@@ -128,12 +158,18 @@
                 android:id="@+id/imageView1"
                 android:layout_width="57dp"
                 android:layout_height="54dp"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+
+                 />
 
             <TextView
                 android:id="@+id/recenttext1"
                 android:layout_width="112dp"
                 android:layout_height="54dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -147,12 +183,17 @@
                 android:id="@+id/imageView2"
                 android:layout_width="58dp"
                 android:layout_height="55dp"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext2"
                 android:layout_width="107dp"
                 android:layout_height="55dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -166,12 +207,17 @@
                 android:id="@+id/imageView3"
                 android:layout_width="58dp"
                 android:layout_height="match_parent"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square"
+                />
 
             <TextView
                 android:id="@+id/recenttext3"
                 android:layout_width="106dp"
                 android:layout_height="51dp"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -185,12 +231,16 @@
                 android:id="@+id/imageView4"
                 android:layout_width="59dp"
                 android:layout_height="match_parent"
-                app:srcCompat="@drawable/button_background" />
+                android:background="@drawable/background_square" />
 
             <TextView
                 android:id="@+id/recenttext4"
                 android:layout_width="110dp"
                 android:layout_height="match_parent"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="3dp"
                 android:text="TextView" />
         </LinearLayout>
     </LinearLayout>
@@ -211,10 +261,25 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="13dp"
-        android:layout_marginTop="280dp"
+        android:layout_marginTop="260dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="230dp"
         android:text="Albums"
+        android:textSize="35dp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="379dp"
+        android:layout_height="184dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="490dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="0dp"
+        android:text="Tracks"
         android:textSize="35dp"
         android:textStyle="bold" />
 </RelativeLayout>

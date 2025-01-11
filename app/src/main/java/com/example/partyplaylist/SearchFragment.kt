@@ -19,6 +19,7 @@ import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.data.SearchResponse
 //import com.example.partyplaylist.models.data.Track
 import com.example.partyplaylist.network.RetrofitClient
+import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.utils.TokenManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,7 @@ class SearchFragment : Fragment() {
     private var searchAdapter: SearchAdapter? = null
     private var searchResults: MutableList<Any> = mutableListOf()  // Using Any to handle both Track and Album
     private var searchJob: Job? = null
+    private lateinit var firebaseRepository: FirebaseRepository
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,11 +47,18 @@ class SearchFragment : Fragment() {
         // Initialize components
         searchBar = view.findViewById(R.id.search_bar)
         searchResultsRecycler = view.findViewById(R.id.search_results_recycler)
-
+        firebaseRepository =  FirebaseRepository(requireContext())
         // Setup RecyclerView
         searchAdapter = SearchAdapter(searchResults)
         searchResultsRecycler?.layoutManager = LinearLayoutManager(context)
         searchResultsRecycler?.adapter = searchAdapter
+
+        firebaseRepository.getTracks { tracks ->
+            tracks?.let {
+                searchResults.addAll(it)
+                searchAdapter?.notifyDataSetChanged()
+            }
+        }
 
         // Search text listener
         searchBar?.addTextChangedListener(object : TextWatcher {

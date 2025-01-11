@@ -10,15 +10,28 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.partyplaylist.adapters.AlbumAdapter
+import com.example.partyplaylist.adapters.TrackAdapter
 import com.example.partyplaylist.databinding.FragmentHomePageBinding
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Artist
+import com.example.partyplaylist.models.Track
+import com.example.partyplaylist.network.RetrofitClient
 import com.example.partyplaylist.repositories.FirebaseRepository
+import com.example.partyplaylist.services.SpotifyDataService
+import com.example.partyplaylist.utils.TokenManager
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 
 class HomePageFragment : Fragment() {
 
@@ -32,9 +45,14 @@ class HomePageFragment : Fragment() {
     // Firebase Repository
     private lateinit var firebaseRepository: FirebaseRepository
     private lateinit var albumRecyclerView: RecyclerView
+    private lateinit var trackRecyclerView: RecyclerView
+
 
     private val albums = mutableListOf<Album>()
+    private val tracks = mutableListOf<Track>()
+
     private lateinit var albumAdapter: AlbumAdapter
+    private lateinit var trackAdapter: TrackAdapter
 
     // ImageView and TextView variables
     private lateinit var imageView1: ImageView
@@ -67,6 +85,9 @@ class HomePageFragment : Fragment() {
     private val imageUrls = mutableListOf<String?>()
     private val artistNames = mutableListOf<String?>()
 
+
+    private lateinit var spotifyDataService: SpotifyDataService
+
     // View Binding
     private var _binding: FragmentHomePageBinding? = null
     private val binding get() = _binding!!
@@ -81,9 +102,16 @@ class HomePageFragment : Fragment() {
 
         firebaseRepository = FirebaseRepository(this.requireContext())
 
+        spotifyDataService = SpotifyDataService(this.requireContext())
+        trackRecyclerView = binding.tracksRecyclerview
+        trackRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        trackAdapter = TrackAdapter(tracks)
+        trackRecyclerView.adapter = trackAdapter
         // Initialize RecyclerView for albums
         albumRecyclerView = binding.albumRecyclerview
-        albumRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        albumRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         albumAdapter = AlbumAdapter(albums) { album ->
             openAlbumTracksFragment(album)
         }
@@ -122,7 +150,7 @@ class HomePageFragment : Fragment() {
 
         // Fetch and display albums
         fetchAndDisplayAlbums()
-
+        fetchAndDisplayTracks()
         // Setup click listeners
         setupClickListeners()
 
@@ -155,49 +183,174 @@ class HomePageFragment : Fragment() {
         }
     }
 
-    private fun fetchAndDisplayArtists() {
-        firebaseRepository.getAllArtists { artists ->
-            // Assuming you want to display the first eight artists
-            val artistList = artists?.take(8)
-            if (artistList != null) {
-                imageUrls.clear()
-                artistNames.clear()
-
-                for (artist in artistList) {
-                    imageUrls.add(artist.images.firstOrNull()?.url)
-                    artistNames.add(artist.name)
-                }
-
-                // Display images and names
-                imageUrls.getOrNull(0)?.let { Glide.with(this).load(it).into(imageView1) }
-                textView1.text = artistNames.getOrNull(0)
-
-                imageUrls.getOrNull(1)?.let { Glide.with(this).load(it).into(imageView2) }
-                textView2.text = artistNames.getOrNull(1)
-
-                imageUrls.getOrNull(2)?.let { Glide.with(this).load(it).into(imageView3) }
-                textView3.text = artistNames.getOrNull(2)
-
-                imageUrls.getOrNull(3)?.let { Glide.with(this).load(it).into(imageView4) }
-                textView4.text = artistNames.getOrNull(3)
-
-                imageUrls.getOrNull(4)?.let { Glide.with(this).load(it).into(imageView5) }
-                textView5.text = artistNames.getOrNull(4)
-
-                imageUrls.getOrNull(5)?.let { Glide.with(this).load(it).into(imageView6) }
-                textView6.text = artistNames.getOrNull(5)
-
-                imageUrls.getOrNull(6)?.let { Glide.with(this).load(it).into(imageView7) }
-                textView7.text = artistNames.getOrNull(6)
-
-                imageUrls.getOrNull(7)?.let { Glide.with(this).load(it).into(imageView8) }
-                textView8.text = artistNames.getOrNull(7)
+    private fun fetchAndDisplayTracks() {
+        firebaseRepository.getAllTracks { fetchedTracks ->
+            if (fetchedTracks != null) {
+                Log.d("HomePageFragment", "Albums fetched: ${fetchedTracks.size}")
+                tracks.clear()
+                tracks.addAll(fetchedTracks) // Add all fetched albums
+                trackAdapter.notifyDataSetChanged() // Notify adapter of the data change
             } else {
-                // Handle cases where there are fewer than 8 artists
-                // Optionally, display placeholder images or texts
+                Log.e("HomePageFragment", "No albums fetched or error occurred")
             }
         }
     }
+    private fun fetchAndDisplayArtists() {
+        // First, fetch artists from Firebase
+        firebaseRepository.getAllArtists { artists ->
+            val artistList = artists?.takeLast(8)?.toMutableList() ?: mutableListOf()
+
+            // Clear existing data
+            imageUrls.clear()
+            artistNames.clear()
+
+            // Add the Firebase artists to the lists
+            for (artist in artistList) {
+                imageUrls.add(artist.images.firstOrNull()?.url)
+                artistNames.add(artist.name)
+            }
+
+            // If there are less than 8 artists, fetch more from the Spotify API
+            if (artistList.size < 8) {
+                // Define the artist IDs to fetch
+                val artistIds = listOf(
+                    "5cj0lLjcoR7YOSnhnX0Po5", // Doja Cat
+                    "6M2wZ9GZgrQXHCFfjv46we", // Dua Lipa
+                    "6qqNVTkY8uBg9cP3Jd7DAH", // Billie Eilish
+                    "0EmeFodog0BfCgMzAIvKQp", // Shakira
+                    "2YZyLoL8N0Wb9xBt1NhZWg", // Kendrick Lamar
+                    "3TVXtAsR1Inumwj472S9r4", // Drake
+                    "7jVv8c5Fj3E9VhNjxT4snq", // Lil Nas X
+                    "6l3HvQ5sa6mXTsMTB19rO5"  // J. Cole
+                )
+                // Fetch additional artists from the Spotify API
+                fetchArtistsFromSpotifyByIds(artistIds) { additionalArtists ->
+                    additionalArtists?.let {
+                        val remainingSlots = 8 - artistList.size
+                        val additionalArtistsToAdd = it.take(remainingSlots)
+
+                        // Add the additional artists to the lists
+                        for (artist in additionalArtistsToAdd) {
+                            imageUrls.add(artist.images.firstOrNull()?.url)
+                            artistNames.add(artist.name)
+                        }
+                    }
+
+                    // Display the artists
+                    displayArtists()
+                }
+            } else {
+                // If there are enough artists, display them
+                displayArtists()
+            }
+        }
+    }
+
+
+    private fun displayArtists() {
+        // Display artists' images and names
+        imageUrls.getOrNull(0)?.let { Glide.with(this).load(it).into(imageView1) }
+        textView1.text = artistNames.getOrNull(0)
+
+        imageUrls.getOrNull(1)?.let { Glide.with(this).load(it).into(imageView2) }
+        textView2.text = artistNames.getOrNull(1)
+
+        imageUrls.getOrNull(2)?.let { Glide.with(this).load(it).into(imageView3) }
+        textView3.text = artistNames.getOrNull(2)
+
+        imageUrls.getOrNull(3)?.let { Glide.with(this).load(it).into(imageView4) }
+        textView4.text = artistNames.getOrNull(3)
+
+        imageUrls.getOrNull(4)?.let { Glide.with(this).load(it).into(imageView5) }
+        textView5.text = artistNames.getOrNull(4)
+
+        imageUrls.getOrNull(5)?.let { Glide.with(this).load(it).into(imageView6) }
+        textView6.text = artistNames.getOrNull(5)
+
+        imageUrls.getOrNull(6)?.let { Glide.with(this).load(it).into(imageView7) }
+        textView7.text = artistNames.getOrNull(6)
+
+        imageUrls.getOrNull(7)?.let { Glide.with(this).load(it).into(imageView8) }
+        textView8.text = artistNames.getOrNull(7)
+    }
+
+    private fun fetchArtistsFromSpotifyByIds(
+        artistIds: List<String>,
+        callback: (List<Artist>?) -> Unit
+    ) {
+        val tokenManager = context?.let { TokenManager(it) }
+
+        tokenManager?.refreshTokenIfNeeded { accessToken ->
+            if (accessToken == null) {
+                Toast.makeText(
+                    context,
+                    "Access token is null, please log in again!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@refreshTokenIfNeeded
+            }
+
+            // Start a coroutine for background task
+            CoroutineScope(Dispatchers.IO).launch {
+                val artistsList = mutableListOf<Artist>()
+
+                // Fetch artists one by one
+                for (artistId in artistIds) {
+                    try {
+                        val url = URL("https://api.spotify.com/v1/artists/$artistId")
+                        val connection = url.openConnection() as HttpURLConnection
+                        connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                        connection.requestMethod = "GET"
+
+                        // Read the response
+                        val responseCode = connection.responseCode
+                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                            val response = connection.inputStream.bufferedReader().readText()
+                            val artist = parseArtistResponse(response)
+                            artist?.let { artistsList.add(it) }
+                        } else {
+                            Log.e("FetchArtists", "Error fetching artist ID $artistId: $responseCode")
+                        }
+
+                        connection.disconnect()
+                    } catch (e: Exception) {
+                        Log.e("FetchArtists", "Exception for artist ID $artistId: ${e.message}")
+                    }
+                }
+
+                // Pass the list of artists to the callback
+                withContext(Dispatchers.Main) {
+                    firebaseRepository.saveArtists(artistsList)
+                    for(artist in artistsList) {
+                        fetchAndSaveArtistTopTracks(artist.id)
+                    }
+                    callback(artistsList)
+                }
+            }
+        }
+    }
+    private fun fetchAndSaveArtistTopTracks( artistId: String) {
+        Log.d("SpotifySyncService", "Fetching top tracks for artist: $artistId")
+        spotifyDataService.fetchArtistTopTracks(artistId) { tracks ->
+            tracks?.let {
+                Log.d("SpotifySyncService", "Top tracks fetched: ${it.size} tracks")
+                firebaseRepository.saveArtistTopTracks(artistId, it) // Ensure you have a method for saving top tracks
+            } ?: Log.e("SpotifySyncService", "Failed to fetch top tracks for artist: $artistId")
+        }
+    }
+    // Function to parse the artist response (you may need to adjust it based on the actual response structure)
+    private fun parseArtistResponse(response: String): Artist? {
+        try {
+            // Use Gson or another JSON parser to convert the response into an Artist object
+            val gson = Gson()
+            val artist = gson.fromJson(response, Artist::class.java)
+            return artist
+        } catch (e: Exception) {
+            Log.e("FetchArtists", "Error parsing artist response: ${e.message}")
+            return null
+        }
+    }
+
 
     private fun setupClickListeners() {
         albumAdapter = AlbumAdapter(albums) { album ->

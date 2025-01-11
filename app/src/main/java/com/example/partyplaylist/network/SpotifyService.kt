@@ -18,7 +18,7 @@ interface SpotifyService {
     suspend fun addTracksToPlaylist(
         @Header("Authorization") authHeader: String,
         @Path("playlistId") playlistId: String?,
-        @Body tracks: Map<String, List<String>>
+        @Body uris: List<String>
     ): retrofit2.Response<Unit>
 
     @GET("v1/me")
@@ -91,6 +91,18 @@ interface SpotifyService {
         @Query("limit") limit: Int = 10,
         @Header("Authorization") authHeader: String
     ): retrofit2.Response<SearchResponse>
+
+    @GET("v1/artists/{id}")
+    suspend fun getArtistById(
+        @Path("id") artistId: String,
+        @Header("Authorization") authHeader: String
+    ): retrofit2.Response<Artist>
+
+    @GET("v1/artists")
+    suspend fun getArtistsByIds(
+        @Query("ids") artistIds: String,
+        @Header("Authorization") authHeader: String
+    ): retrofit2.Response<ArtistResponse>
 
 
 

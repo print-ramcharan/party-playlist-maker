@@ -60,12 +60,12 @@ class PlaylistAdapter(
             // Handle the case where no image URL is found
             if (imageUrl.isNullOrEmpty()) {
                 Glide.with(itemView.context)
-                    .load(R.drawable.ic_music_note) // Default placeholder image
+                    .load(R.drawable.ic_music_note_black) // Default placeholder image
                     .into(playlistImageView)
             } else {
                 Glide.with(itemView.context)
                     .load(imageUrl)
-                    .placeholder(R.drawable.ic_music_note) // Placeholder while loading
+                    .placeholder(R.drawable.ic_music_note_black) // Placeholder while loading
                     .into(playlistImageView)
             }
 

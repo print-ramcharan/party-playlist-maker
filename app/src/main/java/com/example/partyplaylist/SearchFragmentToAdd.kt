@@ -14,9 +14,16 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.partyplaylist.adapters.SearchAdapterToAdd
+import com.example.partyplaylist.models.AddedBy
+import com.example.partyplaylist.models.Playlist
+import com.example.partyplaylist.models.PlaylistTrack
+import com.example.partyplaylist.models.PlaylistTracks
 import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.network.RetrofitClient
+import com.example.partyplaylist.repositories.FirebaseRepository
+import com.example.partyplaylist.utils.SharedPreferencesManager.getUserId
 import com.example.partyplaylist.utils.TokenManager
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,6 +41,13 @@ class SearchFragmentToAdd(private val playlistDetailFragment: PlaylistDetailFrag
     private var selectedTracks: MutableList<Track> = mutableListOf()  // Tracks that are selected by the user
     private var searchJob: Job? = null
     private var confirmButton: View? = null
+    private var userId : String? = null
+    private var tracks: MutableList<PlaylistTrack> = mutableListOf()
+
+
+    private lateinit var firebaseRepository: FirebaseRepository
+
+    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,10 +56,13 @@ class SearchFragmentToAdd(private val playlistDetailFragment: PlaylistDetailFrag
         val view = inflater.inflate(R.layout.fragment_search_add, container, false)
 
         // Initialize components
+        userId = getUserId(requireContext())
         searchBar = view.findViewById(R.id.search_bar)
         searchResultsRecycler = view.findViewById(R.id.search_results_recycler)
         confirmButton = view.findViewById(R.id.confirm_button)  // Confirm button for adding songs
+        Log.d("SearchFragment", "Confirm Button: $confirmButton")
 
+        firebaseRepository = FirebaseRepository(requireContext())
         // Setup RecyclerView
         searchAdapterToAdd = SearchAdapterToAdd(searchResults, selectedTracks)
         searchAdapterToAdd!!.setListener(object :SearchAdapterToAdd.SongSelectionListener{
@@ -67,12 +84,12 @@ class SearchFragmentToAdd(private val playlistDetailFragment: PlaylistDetailFrag
         // Handle Confirm Button Click
         confirmButton?.setOnClickListener {
             if (selectedTracks.isNotEmpty()) {
-                // Perform API request to add selected tracks to the playlist
                 addTracksToPlaylistApiRequest(selectedTracks)
             } else {
                 Toast.makeText(context, "No tracks selected", Toast.LENGTH_SHORT).show()
             }
         }
+
 
         // Search text listener
         searchBar?.addTextChangedListener(object : TextWatcher {
@@ -170,45 +187,188 @@ class SearchFragmentToAdd(private val playlistDetailFragment: PlaylistDetailFrag
         }
     }
 
-    private fun addTracksToPlaylistApiRequest(selectedTracks: List<Track>) {
-        // Prepare the API request body (Spotify expects URIs of tracks)
-        val playlistId = playlistDetailFragment.getPlaylistId()
-        val trackUris = selectedTracks.map { "spotify:track:${it.id}" }  // Assuming 'id' is the track ID
 
-        // Prepare the request body for Spotify API
-        val requestBody = mapOf("uris" to trackUris)
+private fun addTracksToPlaylistApiRequest(selectedTracks: List<Track>) {
+    // Prepare the API request body (Spotify expects URIs of tracks)
+    val playlistId = playlistDetailFragment.getPlaylistId()
 
-        // Get the access token
-        val tokenManager = context?.let { TokenManager(it) }
-        val accessToken = tokenManager?.getAccessToken()
+    // Use mapNotNull to remove null URIs and ensure distinct URIs
+    val trackUris = selectedTracks.mapNotNull { it.uri }.distinct()
 
-        if (accessToken != null) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val response: Response<Unit> = RetrofitClient.getSpotifyApiService().addTracksToPlaylist(
-                        "Bearer $accessToken",
-                        playlistId,
-                        requestBody
-                    )
+    // Log the URIs to confirm they are unique
+    Log.d("AddTracks", "Tracks to be added: $trackUris")
 
-                    withContext(Dispatchers.Main) {
-                        if (response.isSuccessful) {
-                            // On success, show a message and close the fragment
-                            Toast.makeText(context, "Tracks added to the playlist successfully!", Toast.LENGTH_SHORT).show()
-                            requireActivity().supportFragmentManager.popBackStack()
-                        } else {
-                            Toast.makeText(context, "Failed to add tracks. Try again later.", Toast.LENGTH_SHORT).show()
+    // Prepare the request body for Spotify API - should be a list of URIs
+    val requestBody = trackUris
+
+    // Get the access token
+    val tokenManager = context?.let { TokenManager(it) }
+    val accessToken = tokenManager?.getAccessToken()
+
+    if (accessToken != null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Add tracks to the playlist on Spotify
+                val response: Response<Unit> = RetrofitClient.getSpotifyApiService().addTracksToPlaylist(
+                    "Bearer $accessToken",
+                    playlistId,
+                    requestBody // Pass the list of unique URIs directly
+                )
+
+                // Log the full response to check if Spotify is processing correctly
+                Log.d("AddTracks", "Spotify Response: ${response.body()}")
+                Log.d("AddTracks", "Spotify Response Code: ${response.code()}")
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        // Fetch the playlist data from Firebase to get the owner
+                        if (playlistId != null) {
+                            updateTracksInFirebase(playlistId, selectedTracks)
+                        }
+
+                        Toast.makeText(context, "Tracks added to the playlist successfully!", Toast.LENGTH_SHORT).show()
+                        requireActivity().supportFragmentManager.popBackStack()
+                        (parentFragment as? PlaylistDetailFragment)?.addNewTrack(tracks)
+                    } else {
+                        // Handle failure
+                        Toast.makeText(context, "Failed to add tracks. Try again later.", Toast.LENGTH_SHORT).show()
+                        Log.e("AddTracks", "Error: ${response.errorBody()?.string()}")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                Log.e("SearchFragment", "API request failed: ${e.message}")
+            }
+        }
+    } else {
+        Toast.makeText(context, "Access token is missing", Toast.LENGTH_SHORT).show()
+    }
+}
+
+            // Function to update the tracks in Firebase
+//    private fun updateTracksInFirebase(playlistId: String, selectedTracks: List<Track>) {
+//        val playlistRef = userId?.let { database.getReference("users").child(it).child("playlists").child(playlistId) }
+//
+//        playlistRef?.get()?.addOnSuccessListener { dataSnapshot ->
+//            val playlist = dataSnapshot.getValue(Playlist::class.java)
+//
+//            if (playlist != null) {
+//                val ownerId = playlist.owner.id
+//                val ownerPlaylistRef = database.getReference("users").child(ownerId).child("playlists").child(playlistId)
+//
+//                // Get existing tracks and their IDs
+//                val existingTracks = playlist.tracks.items
+//                val existingTrackIds = existingTracks.map { it.track.id }.toSet()
+//
+//                // Filter out selected tracks that are already in the playlist
+//                val newTracksToAdd = selectedTracks.filter { it.id !in existingTrackIds }
+//
+//                if (newTracksToAdd.isEmpty()) {
+//                    // Show a message if all selected tracks already exist
+//                    println("All selected tracks already exist in the playlist.")
+//                } else {
+//                    // Create new PlaylistTrack objects for the new tracks
+//                    val newPlaylistTracks = newTracksToAdd.map { track ->
+//                        PlaylistTrack(
+//                            track = track,
+//                            voteCount = 0,
+//                            added_by = AddedBy(id = userId),
+//                            addedCount = 1,
+//                            lastUpdated = System.currentTimeMillis(),
+//                            voters = mutableListOf()
+//                        )
+//                    }
+//
+//                    // Combine existing and new tracks, ensuring no duplicates
+//                    val updatedItems = (existingTracks + newPlaylistTracks).distinctBy { it.track.id }
+//
+//                    // Update Firebase with the combined list of unique tracks
+//                    val updatedTracks = PlaylistTracks(
+//                        total = updatedItems.size,
+//                        items = updatedItems
+//                    )
+//
+//                    ownerPlaylistRef.child("tracks").setValue(updatedTracks)
+//                        .addOnSuccessListener {
+//                            println("Tracks updated successfully!")
+//                        }
+//                        .addOnFailureListener { e ->
+//                            println("Error updating tracks: ${e.message}")
+//                        }
+//                }
+//            }
+//        }
+//    }
+   private fun updateTracksInFirebase(playlistId: String, selectedTracks: List<Track>) {
+
+                val playlistRef = userId?.let {
+                    database.getReference("users").child(it).child("playlists").child(playlistId)
+                }
+
+                playlistRef?.get()?.addOnSuccessListener { dataSnapshot ->
+                    val playlist = dataSnapshot.getValue(Playlist::class.java)
+
+                    if (playlist != null) {
+
+                        val ownerId = playlist.owner.id
+                        val ownerPlaylistRef =
+                            database.getReference("users").child(ownerId).child("playlists")
+                                .child(playlistId)
+
+                        firebaseRepository.getPlaylistTracksOwner(
+                            playlistId,
+                            ownerId
+                        ) { ownerPlaylist ->
+                            // Get existing tracks and their IDs
+                            if (ownerPlaylist != null) {
+                                val existingTracks = ownerPlaylist.tracks.items
+                                val existingTrackIds = existingTracks.map { it.track.id }.toSet()
+                                Log.d("existing tracks", existingTracks.toString())
+                                // Filter out selected tracks that are already in the playlist
+                                val newTracksToAdd =
+                                    selectedTracks.filter { it.id !in existingTrackIds }
+
+                                if (newTracksToAdd.isEmpty()) {
+                                    // Show a message if all selected tracks already exist
+                                    println("All selected tracks already exist in the playlist.")
+                                } else {
+                                    // Create new PlaylistTrack objects for the new tracks
+                                    val newPlaylistTracks = newTracksToAdd.map { track ->
+                                        PlaylistTrack(
+                                            track = track,
+                                            voteCount = 0,
+                                            added_by = AddedBy(id = userId),
+                                            addedCount = 1,
+                                            lastUpdated = System.currentTimeMillis(),
+                                            voters = mutableListOf()
+                                        )
+                                    }
+
+                                    // Combine existing and new tracks, ensuring no duplicates
+                                    val updatedItems =
+                                        (existingTracks + newPlaylistTracks).distinctBy { it.track.id }
+
+                                    // Update Firebase with the combined list of unique tracks
+                                    val updatedTracks = PlaylistTracks(
+                                        total = updatedItems.size,
+                                        items = updatedItems
+                                    )
+
+                                    ownerPlaylistRef.child("tracks").setValue(updatedTracks)
+                                        .addOnSuccessListener {
+                                            println("Tracks updated successfully!")
+                                            tracks.addAll(updatedItems)
+                                        }
+                                        .addOnFailureListener { e ->
+                                            println("Error updating tracks: ${e.message}")
+                                        }
+                                }
+                            }
                         }
                     }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
-                    Log.e("SearchFragment", "API request failed: ${e.message}")
                 }
+
             }
-        } else {
-            Toast.makeText(context, "Access token is missing", Toast.LENGTH_SHORT).show()
-        }
-    }
 }

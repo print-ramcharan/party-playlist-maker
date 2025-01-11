@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.partyplaylist.LibraryFragment.FragmentTransactionListener
 import com.example.partyplaylist.adapters.PlaylistTracksAdapter
 import com.example.partyplaylist.data.User
 import com.example.partyplaylist.models.Playlist
@@ -99,6 +98,15 @@ class PlaylistDetailFragment : Fragment() {
         }
 
         return view
+    }
+    fun addNewTrack(newTrack: MutableList<PlaylistTrack>) {
+        // Add the new track to the existing playlist
+        tracks.addAll(newTrack)
+
+        // Update the adapter with the new track list
+        playlistTracksAdapter.updatePlaylistTracks(tracks)
+
+        // Optionally, update Firebase or perform any other necessary actions
     }
 
     private fun fetchPlaylistDetails(playlistId: String) {

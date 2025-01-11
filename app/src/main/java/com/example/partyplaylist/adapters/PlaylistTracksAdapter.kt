@@ -20,6 +20,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.partyplaylist.R
 import com.example.partyplaylist.models.PlaylistTrack
 import com.example.partyplaylist.data.User
+import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.utils.SharedPreferencesManager
 import com.example.partyplaylist.utils.SharedPreferencesManager.getAccessToken
 import com.google.gson.Gson
@@ -29,7 +30,7 @@ import okhttp3.Request
 import java.io.IOException
 
 class PlaylistTracksAdapter(
-    private val tracks: List<PlaylistTrack>,
+    private var tracks: List<PlaylistTrack>,
     private val onVoteClicked: (PlaylistTrack) -> Unit
 ) : RecyclerView.Adapter<PlaylistTracksAdapter.PlaylistTrackViewHolder>() {
 
@@ -51,6 +52,10 @@ class PlaylistTracksAdapter(
     override fun getItemCount(): Int {
         Log.d("AdapterLifecycle", "getItemCount: ${tracks.size}")
         return tracks.size
+    }
+    fun updatePlaylistTracks(newTracks: List<PlaylistTrack>) {
+        tracks = newTracks
+        notifyDataSetChanged() // Notifies the adapter that the data has changed
     }
 
     inner class PlaylistTrackViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

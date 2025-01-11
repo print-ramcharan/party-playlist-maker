@@ -129,7 +129,7 @@ private fun fetchAndSavePlaylists(userId: String) {
                 } ?: false
 
                 // Keep only the ones where the user is the owner or a collaborator
-                isOwner || (isCollaborative && isCollaborator)
+                isOwner || ( isCollaborator)
             }
 
             filteredPlaylists.forEach { playlist ->
