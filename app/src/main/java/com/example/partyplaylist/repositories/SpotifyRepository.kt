@@ -1,14 +1,13 @@
 package com.example.partyplaylist.repositories
 
 import android.content.Context
-import com.example.partyplaylist.models.TopTracksResponse
 import com.example.partyplaylist.models.TopArtistsResponse
+import com.example.partyplaylist.models.TopTracksResponse
 import com.example.partyplaylist.utils.SharedPreferencesManager
+import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 
 class SpotifyRepository(private val context: Context) {
 

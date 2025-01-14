@@ -1,11 +1,9 @@
 package com.example.partyplaylist.data
 
 import com.example.partyplaylist.models.ExternalUrls
-import com.example.partyplaylist.models.Image
 import com.example.partyplaylist.models.Followers
+import com.example.partyplaylist.models.Image
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 
 
 data class User(

@@ -1,7 +1,6 @@
 package com.example.partyplaylist.models
 
 import com.example.partyplaylist.data.User
-import com.google.gson.annotations.SerializedName
 
 data class PlaylistResponse(
     val id: String,
@@ -21,7 +20,7 @@ data class PlaylistResponse(
     val playlists: List<Playlist> = emptyList()
 }
 data class PlaylistResponse2(
-    val items: List<Playlist>
+    var items: List<Playlist>
 )
 
 data class PlaylistRequest(
@@ -33,5 +32,4 @@ data class PlaylistRequest(
 data class PlaylistCreateRequest(
     val name: String,
     val description: String,
-    val public: Boolean
 )

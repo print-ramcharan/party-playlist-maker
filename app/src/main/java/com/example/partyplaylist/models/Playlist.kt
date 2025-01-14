@@ -1,8 +1,6 @@
 package com.example.partyplaylist.models
 
-import com.example.partyplaylist.data.Song
 import com.example.partyplaylist.data.User
-import com.google.firebase.ktx.Firebase
 import com.google.gson.annotations.SerializedName
 
 data class Playlist(

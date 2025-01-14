@@ -9,9 +9,32 @@
     <color name="white">#FFFFFFFF</color>
 <color name="spotify_black">#191414</color>
 <color name="spotify_grey">#B3B3B3</color>
-<color name="spotify_green">#1DB954</color>
-    <color name="bottom_nav_item_active">#1DB954</color>
+<color name="spotify_green">#006FFF</color>
+    <color name="bottom_nav_item_active">#006FFF</color>
     <color name="bottom_nav_item_inactive">#FFFFFF</color>
     <color name="bottom_nav_background">#000000</color>
+    <color name="selected_item">#FFDDDD</color>
+    <color name="default_item">#FFFFFF</color>
+    <!-- Primary Colors -->
+    <color name="colorPrimary">#FF6B6B</color>
+    <color name="colorPrimaryDark">#E63E3E</color>
+    <color name="colorAccent">#F9A826</color>
 
+        <color name="refresh_spinner_color_1">#FF5722</color> <!-- Deep Orange -->
+        <color name="refresh_spinner_color_2">#4CAF50</color> <!-- Green -->
+        <color name="refresh_spinner_color_3">#2196F3</color> <!-- Blue -->
+        <color name="refresh_spinner_color_4">#FFEB3B</color> <!-- Yellow -->
+        <color name="refresh_spinner_color_5">#9C27B0</color> <!-- Purple -->
+        <color name="refresh_spinner_color_6">#00BCD4</color> <!-- Cyan -->
+        <color name="refresh_spinner_color_7">#FF9800</color> <!-- Orange -->
+        <color name="refresh_spinner_color_8">#795548</color> <!-- Brown -->
+        <color name="refresh_spinner_color_9">#3F51B5</color> <!-- Indigo -->
+        <color name="refresh_spinner_color_10">#009688</color> <!-- Teal -->
+
+
+
+    <!-- Background Colors -->
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="textColorPrimary">#333333</color>
+    <color name="textColorSecondary">#757575</color>
 </resources>

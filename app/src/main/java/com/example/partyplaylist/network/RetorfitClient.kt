@@ -1,13 +1,9 @@
 package com.example.partyplaylist.network
 
-import com.example.partyplaylist.models.data.SearchResponse
-import com.google.android.gms.common.api.Response
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Query
 
 //interface SpotifyApiService {
 //    @GET("v1/search")

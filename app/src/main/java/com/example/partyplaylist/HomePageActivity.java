@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,7 +15,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,12 +25,16 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.partyplaylist.services.MediaPlayerService;
 import com.example.partyplaylist.services.SpotifySyncService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class HomePageActivity extends AppCompatActivity implements HomePageFragment.OnArtistSelectedListener, LibraryFragment.FragmentTransactionListener, PlaylistDetailFragment.FragmentTransactionListener {
@@ -81,23 +83,28 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
-//        songProgressBar = findViewById(R.id.songProgressBar);
+
         initializeViews();
         setupViewPagerAndBottomNavigation();
         setupListeners();
-        setupServiceConnections();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                setupServiceConnections();
+            }
+        });
 
-//        setupSeekBar();
-//         PlaylistDetailFragment.FragmentTrasactionListener = this;
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.homepage);
+            if (currentFragment instanceof HomePageFragment) {
+                // Re-enable SwipeRefreshLayout
+                ((HomePageFragment) currentFragment).enableSwipeRefresh();
+            }
+        });
+
+
         songTitleTextView = findViewById(R.id.song_title);
-        // Get the NavHostFragment
-//        navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-
-        // Initialize the NavController
-//        NavController navController = navHostFragment.getNavController();
-        // Set up the ActionBar (if you have one)
-//        NavigationUI.setupActionBarWithNavController(this, navController);
-
 
         songTitleTextView.setOnSwipeListener(new SwipeableTextView.OnSwipeListener() {
             @Override
@@ -121,11 +128,7 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
         Log.d(TAG, "onCreate: HomePageActivity created");
     }
 
-    //    @Override
-//    public boolean onSupportNavigateUp() {
-//        NavController navController = NavHostFragment.findNavController(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment));
-//        return navController.navigateUp() || super.onSupportNavigateUp();
-//    }
+
     private void initializeViews() {
         bottomNavigationView = findViewById(R.id.bottomnavigationview);
         viewPager = findViewById(R.id.view_page);
@@ -195,38 +198,6 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
             }
         });
     }
-    private void updateUIForCurrentPage(int position) {
-        // Update UI based on current page
-        View homepage = findViewById(R.id.homepage);
-        View playerBottom = findViewById(R.id.progress_bar);
-
-        if (homepage != null) {
-            if (position == 0) {
-                homepage.setBackgroundColor(getResources().getColor(android.R.color.white));
-            } else {
-                homepage.setBackgroundColor(getResources().getColor(android.R.color.black));
-            }
-        }
-
-        if (playerBottom != null) {
-            if (position == 0) {
-                playerBottom.setVisibility(View.VISIBLE);
-                playerBottom.setBackgroundColor(getResources().getColor(android.R.color.black));
-            } else {
-                playerBottom.setVisibility(View.GONE);
-            }
-        }
-
-        if (songTitleTextView != null) {
-            if (position == 0) {
-                songTitleTextView.setBackgroundColor(getResources().getColor(android.R.color.white));
-                songTitleTextView.setTextColor(getResources().getColor(android.R.color.black));
-            } else {
-                songTitleTextView.setBackgroundColor(getResources().getColor(android.R.color.black));
-                songTitleTextView.setTextColor(getResources().getColor(android.R.color.white));
-            }
-        }
-    }
 
     private void setupServiceConnections() {
         startSpotifySyncService();
@@ -236,38 +207,6 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
         bindService(intent, mediaPlayerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
-//    private void setupSeekBar() {
-//        SeekBar progressBar = findViewById(R.id.progress_bar);
-//        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                if (isBound && fromUser) {
-//                    long duration = mediaPlayerService.getDuration();
-//                    long newPosition = (duration * progress) / 100;
-//                    mediaPlayerService.seekTo(newPosition);
-//                }
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {}
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {}
-//        });
-//
-//        BroadcastReceiver seekBarReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//                if ("UPDATE_SEEKBAR".equals(intent.getAction())) {
-//                    int progress = intent.getIntExtra("progress", 0);
-//                    progressBar.setProgress(progress);
-//                }
-//            }
-//        };
-//
-//        IntentFilter filter = new IntentFilter("UPDATE_SEEKBAR");
-//        registerReceiver(seekBarReceiver, filter);
-//    }
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupListeners() {
@@ -308,36 +247,6 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
             songTitleTextView.setText(title);
         }else songTitleTextView.setText("title got null");
     }
-//    @NonNull
-//    @Override
-//    public void loadSearchFragment(Fragment searchFragment,String tag) {
-//        Log.d(TAG, "Loading SearchFragment");
-//
-//        // Create a new instance of SearchFragment
-////        Fragment searchFragment = new SearchFragment();
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//
-//        // Optionally adjust UI elements
-//        FrameLayout searchContainer = findViewById(R.id.search_view);
-//        if (searchContainer != null) {
-//            searchContainer.setVisibility(View.VISIBLE);
-//        }
-//
-//        // Hide the bottom navigation view if needed
-////        if (bottomNavigationView != null) {
-////            bottomNavigationView.setVisibility(View.GONE);
-////        }
-//
-//        // Perform the fragment transaction
-//        Log.d(TAG, "Replacing current fragment with SearchFragment");
-//        fragmentTransaction.replace(R.id.homepage, searchFragment);
-//        fragmentTransaction.addToBackStack(null);
-//        fragmentTransaction.commit();
-//
-//        Log.d(TAG, "Fragment transaction committed");
-//    }
-
 
     @Override
     public void onArtistSelected(String artistName) {
@@ -381,7 +290,6 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
         TextView songTitle = findViewById(R.id.song_title);
         var playerbottom = findViewById(R.id.player_bottom);
         playerbottom.setBackgroundColor(getResources().getColor(android.R.color.black));
-//        homepage.setBackgroundColor(getResources().getColor(android.R.color.black));
         songTitle.setBackgroundColor(getResources().getColor(android.R.color.black));
         songTitle.setTextColor(getResources().getColor(android.R.color.white));
         fragmentTransaction.addToBackStack(null);
@@ -442,8 +350,15 @@ public class HomePageActivity extends AppCompatActivity implements HomePageFragm
     }
 
     private void startSpotifySyncService() {
-        Intent intent = new Intent(this, SpotifySyncService.class);
-        startService(intent);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(HomePageActivity.this, SpotifySyncService.class);
+                startService(intent);
+            }
+        });
+
     }
 
     private void startMusicPlayerService() {

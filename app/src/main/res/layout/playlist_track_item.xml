@@ -61,6 +61,8 @@
             android:id="@+id/track_artist"
             android:text="Artist Name"
             android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="#666666"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -94,6 +96,7 @@
     </LinearLayout>
 
     <!-- Vote Details -->
+    <!-- Vote Details -->
     <LinearLayout
         android:orientation="vertical"
         android:gravity="center"
@@ -101,22 +104,20 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp">
 
-        <!-- Vote Count -->
-        <TextView
-            android:id="@+id/vote_count"
-            android:text="0"
-            android:textSize="12sp"
-            android:textColor="#000000"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center" />
-
-        <!-- Vote Button -->
+        <!-- Combined Vote Button -->
         <Button
             android:id="@+id/vote_button"
-            android:text="Vote"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:textColor="#FF4081" />
+            android:layout_height="wrap_content"
+            android:text="0\nVote"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:padding="8dp"
+            android:backgroundTint="#FF4081"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:minWidth="60dp"
+            android:minHeight="60dp" />
     </LinearLayout>
+
 </LinearLayout>

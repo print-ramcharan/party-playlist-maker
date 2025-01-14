@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.example.partyplaylist.adapters.AlbumAdapter
 import com.example.partyplaylist.adapters.TrackAdapter
@@ -21,7 +22,6 @@ import com.example.partyplaylist.databinding.FragmentHomePageBinding
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Artist
 import com.example.partyplaylist.models.Track
-import com.example.partyplaylist.network.RetrofitClient
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.services.SpotifyDataService
 import com.example.partyplaylist.utils.TokenManager
@@ -46,6 +46,11 @@ class HomePageFragment : Fragment() {
     private lateinit var firebaseRepository: FirebaseRepository
     private lateinit var albumRecyclerView: RecyclerView
     private lateinit var trackRecyclerView: RecyclerView
+    private lateinit var swipeRefreshLayout : SwipeRefreshLayout
+
+    private var isArtistsLoaded : Boolean = false
+    private var isAlbumsLoaded : Boolean = false
+    private var isTracksLoaded : Boolean = false
 
 
     private val albums = mutableListOf<Album>()
@@ -108,6 +113,11 @@ class HomePageFragment : Fragment() {
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         trackAdapter = TrackAdapter(tracks)
         trackRecyclerView.adapter = trackAdapter
+
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+
+
+
         // Initialize RecyclerView for albums
         albumRecyclerView = binding.albumRecyclerview
         albumRecyclerView.layoutManager =
@@ -145,16 +155,41 @@ class HomePageFragment : Fragment() {
         recentLayout7 = view.findViewById(R.id.recent7)
         recentLayout8 = view.findViewById(R.id.recent8)
 
-        // Fetch and display artists
-        fetchAndDisplayArtists()
-
-        // Fetch and display albums
-        fetchAndDisplayAlbums()
-        fetchAndDisplayTracks()
+//        // Fetch and display artists
+//        fetchAndDisplayArtists()
+////
+////        // Fetch and display albums
+//        fetchAndDisplayAlbums()
+//        fetchAndDisplayTracks()
         // Setup click listeners
         setupClickListeners()
 
+        swipeRefreshLayout.setOnRefreshListener {
+            // Fetch the data when the user swipes down
+            reloadData()
+        }
         return view
+    }
+
+    fun enableSwipeRefresh() {
+        binding?.swipeRefreshLayout?.isEnabled = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.swipeRefreshLayout.isEnabled = true
+        enableSwipeRefresh()
+        reloadData()
+    }
+
+
+    private fun reloadData() {
+        swipeRefreshLayout.isRefreshing = true // Show the refresh spinner
+        fetchAndDisplayArtists()
+        fetchAndDisplayAlbums()
+        fetchAndDisplayTracks()
+
+       // Hide the refresh spinner
     }
 
     private fun openAlbumTracksFragment(album: Album) {
@@ -180,6 +215,10 @@ class HomePageFragment : Fragment() {
             } else {
                 Log.e("HomePageFragment", "No albums fetched or error occurred")
             }
+            isAlbumsLoaded = true
+            if(isAlbumsLoaded && isArtistsLoaded && isTracksLoaded){
+                swipeRefreshLayout.isRefreshing = false
+            }
         }
     }
 
@@ -192,6 +231,10 @@ class HomePageFragment : Fragment() {
                 trackAdapter.notifyDataSetChanged() // Notify adapter of the data change
             } else {
                 Log.e("HomePageFragment", "No albums fetched or error occurred")
+            }
+            isTracksLoaded = true
+            if(isAlbumsLoaded && isArtistsLoaded && isTracksLoaded){
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -238,11 +281,15 @@ class HomePageFragment : Fragment() {
 
                     // Display the artists
                     displayArtists()
+
+//                    swipeRefreshLayout.isRefreshing = false
                 }
             } else {
                 // If there are enough artists, display them
                 displayArtists()
+//                swipeRefreshLayout.isRefreshing = false
             }
+//            isArtistsLoaded = true
         }
     }
 
@@ -272,6 +319,10 @@ class HomePageFragment : Fragment() {
 
         imageUrls.getOrNull(7)?.let { Glide.with(this).load(it).into(imageView8) }
         textView8.text = artistNames.getOrNull(7)
+       isArtistsLoaded = true
+        if(isAlbumsLoaded && isArtistsLoaded && isTracksLoaded){
+            swipeRefreshLayout.isRefreshing = false
+        }
     }
 
     private fun fetchArtistsFromSpotifyByIds(
@@ -287,6 +338,7 @@ class HomePageFragment : Fragment() {
                     "Access token is null, please log in again!",
                     Toast.LENGTH_SHORT
                 ).show()
+//                swipeRefreshLayout.isRefreshing = false
                 return@refreshTokenIfNeeded
             }
 
@@ -325,6 +377,7 @@ class HomePageFragment : Fragment() {
                         fetchAndSaveArtistTopTracks(artist.id)
                     }
                     callback(artistsList)
+//                    swipeRefreshLayout.isRefreshing = false
                 }
             }
         }
@@ -400,12 +453,25 @@ class HomePageFragment : Fragment() {
         }
     }
 
-    private fun openDetailsPage(artistName: String?) {
-        Log.d("HomePageFragment", "openDetailsPage called with artistName: $artistName")
-        listener?.onArtistSelected(artistName)
-    }
+//    private fun openDetailsPage(artistName: String?) {
+//        Log.d("HomePageFragment", "openDetailsPage called with artistName: $artistName")
+//        listener?.onArtistSelected(artistName)
+//    }
+//
+//    private fun openAlbumPage(albumId: String?) {
+//        Log.d("HomePageFragment", "openAlbumPage called with albumId: $albumId")
+//        listener?.onAlbumSelected(albumId)
+//    }
+private fun openDetailsPage(artistName: String?) {
+    binding.swipeRefreshLayout.isRefreshing = false // Stop refreshing
+    binding.swipeRefreshLayout.isEnabled = false    // Disable SwipeRefresh
+    Log.d("HomePageFragment", "openDetailsPage called with artistName: $artistName")
+    listener?.onArtistSelected(artistName)
+}
 
     private fun openAlbumPage(albumId: String?) {
+        binding.swipeRefreshLayout.isRefreshing = false // Stop refreshing
+        binding.swipeRefreshLayout.isEnabled = false    // Disable SwipeRefresh
         Log.d("HomePageFragment", "openAlbumPage called with albumId: $albumId")
         listener?.onAlbumSelected(albumId)
     }

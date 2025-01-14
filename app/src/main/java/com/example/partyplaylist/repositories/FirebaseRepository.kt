@@ -2,7 +2,6 @@ package com.example.partyplaylist.repositories
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.snapshotFlow
 import com.example.partyplaylist.data.Song
 import com.example.partyplaylist.data.User
 import com.example.partyplaylist.models.AddedBy
@@ -13,20 +12,16 @@ import com.example.partyplaylist.models.Image
 import com.example.partyplaylist.models.Playlist
 import com.example.partyplaylist.models.PlaylistTrack
 import com.example.partyplaylist.models.PlaylistTracks
-import com.example.partyplaylist.models.SpotifyTrack
 import com.example.partyplaylist.models.TopTracksResponse
 import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.utils.SharedPreferencesManager
 import com.example.partyplaylist.utils.SharedPreferencesManager.getUserId
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
-import java.util.concurrent.CountDownLatch
 
 
 class FirebaseRepository(private val context: Context) {
@@ -1625,23 +1620,28 @@ fun updateTrackVote(playlistId: String, track: PlaylistTrack, userId: String, ca
 
     fun getUsers(userIds: List<String>, callback: (MutableList<User>) -> Unit) {
         val users = mutableListOf<User>()
-        val latch = CountDownLatch(userIds.size)  // CountDownLatch to wait for all requests
+        val remainingRequests = userIds.size
 
-        for (userId in userIds) {
+        // Create a helper function to call the callback once all users are fetched
+        var completedRequests = 0
+        userIds.forEach { userId ->
             database.getReference("users").child(userId).get().addOnSuccessListener {
                 val user = it.getValue(User::class.java)
                 if (user != null) {
                     users.add(user)
                 }
-                latch.countDown()  // Decrease the count after fetching each user
+                completedRequests++
+                if (completedRequests == remainingRequests) {
+                    callback(users)  // Call the callback once all users are fetched
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("CollaborativePlaylist", "Error fetching user: ${exception.message}")
+                completedRequests++
+                if (completedRequests == remainingRequests) {
+                    callback(users)  // Call the callback even if some requests fail
+                }
             }
         }
-
-        // Wait for all the requests to complete
-        latch.await()
-
-        // Call the callback once all users are fetched
-        callback(users)
     }
 
 }

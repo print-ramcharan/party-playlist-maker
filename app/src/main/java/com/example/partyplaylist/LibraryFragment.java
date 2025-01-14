@@ -1,23 +1,28 @@
 package com.example.partyplaylist;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
-import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.partyplaylist.adapters.PlaylistAdapter;
@@ -25,6 +30,7 @@ import com.example.partyplaylist.data.User;
 import com.example.partyplaylist.models.Playlist;
 import com.example.partyplaylist.repositories.FirebaseRepository;
 import com.example.partyplaylist.utils.SharedPreferencesManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +47,8 @@ public class LibraryFragment extends Fragment {
     private FirebaseRepository firebaseRepository;
     private List<Playlist> allPlaylists = new ArrayList<>();
     private ImageView userPhoto; // Add this for user photo
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private TextView contact ;
     //    private TextView playlistName ;
     public interface FragmentTransactionListener {
         void replaceFragment(Fragment fragment, String tag);
@@ -58,6 +66,16 @@ public class LibraryFragment extends Fragment {
         userPhoto = view.findViewById(R.id.user_photo); // Initialize user photo
 //        playlistName = view.findViewById(R.id.playlist_title);
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
+        contact = view.findViewById(R.id.contactText);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            // Call your method to refresh the content (e.g., reload data from API)
+            refreshContent();
+
+            // After data is loaded, stop the refresh animation
+            swipeRefreshLayout.setRefreshing(false);
+        });
+
 
         // Initialize the adapter with a click listener
         playlistAdapter = new PlaylistAdapter(new ArrayList<>(), playlist -> openPlaylistDetail(playlist));
@@ -93,9 +111,13 @@ public class LibraryFragment extends Fragment {
         });
 
         // Add click listener for the user photo
-        userPhoto.setOnClickListener(v -> showUserOptions());
+        userPhoto.setOnClickListener(v -> viewUserData());
 
         return view;
+    }
+    public void refreshContent() {
+        loadUserProfilePicture();
+        fetchPlaylists();
     }
 
     @Override
@@ -136,8 +158,11 @@ private void fetchPlaylists() {
             for (Playlist playlist : playlists) {
                 boolean isOwner = playlist.getOwner() != null && userId.equals(playlist.getOwner().getId());
                 Log.d("owner value", playlist.getName() + playlist.getOwner());
-                boolean isCollaborator = playlist.getCollaborators() != null &&
-                        playlist.getCollaborators().stream().anyMatch(collaborator -> userId.equals(collaborator.getId()));
+                boolean isCollaborator = false;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    isCollaborator = playlist.getCollaborators() != null &&
+                            playlist.getCollaborators().stream().anyMatch(collaborator -> userId.equals(collaborator.getId()));
+                }
 
                 if (isCollaborator) {
                     // Fetch collaborative playlist
@@ -249,75 +274,130 @@ private void fetchPlaylists() {
         }
         return null;
     }
-
-    private void showUserOptions() {
-        // Create a dialog to show user options
-        Dialog dialog = new Dialog(getContext());
-        dialog.setContentView(R.layout.dialog_user_options);
-
-        // Get references to the TextViews
-        TextView viewProfile = dialog.findViewById(R.id.view_profile);
-        TextView logout = dialog.findViewById(R.id.logout);
-
-        // Set click listeners for the options
-        viewProfile.setOnClickListener(v -> {
-            viewUserData();
-            dialog.dismiss();
-        });
-
-        logout.setOnClickListener(v -> {
-            logoutUser();
-            dialog.dismiss();
-        });
-
-        dialog.show();
-    }
-
     private void viewUserData() {
-        String userId = SharedPreferencesManager.getUserId(requireContext());
-        String userName = SharedPreferencesManager.getUserName(requireContext());
+        User user = SharedPreferencesManager.getUserProfile(requireContext());
 
-        if (userId != null && userName != null) {
-            Toast.makeText(getContext(), "User ID: " + userId + "\nUser Name: " + userName, Toast.LENGTH_LONG).show();
+        if (user != null) {
+            // Inflate the custom dialog layout
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_user_profile, null);
+            dialogView.setBackgroundColor(getResources().getColor(android.R.color.white));
+
+
+            // Bind the views
+            ImageView userProfileImage = dialogView.findViewById(R.id.userProfileImage);
+            TextView userNameText = dialogView.findViewById(R.id.userNameText);
+            TextView userIdText = dialogView.findViewById(R.id.userIdText);
+            TextView userEmailText = dialogView.findViewById(R.id.userEmailText); // Email TextView
+            TextView userFollowersText = dialogView.findViewById(R.id.userFollowersText); // Followers TextView
+            Button logoutButton = dialogView.findViewById(R.id.logoutButton); // Logout Button
+            TextView contact = dialogView.findViewById(R.id.contactText);
+            // Set the profile data
+             contact.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Create an array with the options: Send Email and Visit Portfolio
+                    String[] options = {"Send Email", "Visit Portfolio"};
+
+                    // Create an AlertDialog to ask the user which action to take
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                    builder.setTitle("Contact Options")
+                            .setItems(options, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0: {
+                                            // Send Email - open email client with predefined email
+                                            Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:ramcharanpolabathina@gmail.com"));
+                                            emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Subject here");
+                                            emailIntent.putExtra(Intent.EXTRA_TEXT, "Email body here");
+                                            startActivity(Intent.createChooser(emailIntent, "Send email"));
+                                            break;
+                                        }
+                                        case 1: {
+                                            // Visit Portfolio - open the URL in a browser
+                                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://print-ramcharan.github.io/personal-portfolio/"));
+                                            startActivity(browserIntent);
+                                            break;
+                                        }
+                                    }
+                                }
+                            })
+                            .create()
+                            .show();
+                }
+            });
+
+            if (user.getImages() != null && !user.getImages().isEmpty()) {
+                Glide.with(this)
+                        .load(user.getImages().get(0).getUrl()) // Load the image from the URL
+                        .placeholder(R.drawable.ic_person) // Default placeholder
+                        .circleCrop() // Crop the image to a circle
+                        .into(userProfileImage);
+            } else {
+                Glide.with(this)
+                        .load(R.drawable.ic_person) // Default image
+                        .circleCrop()
+                        .into(userProfileImage);
+            }
+
+            userNameText.setText(user.getDisplayName());
+            userIdText.setText("ID: " + user.getId());
+            userEmailText.setText("Email: " + (user.getEmail() != null ? user.getEmail() : "N/A"));
+            userFollowersText.setText("Followers: " + user.getFollowers().getTotal());
+
+            // Show the dialog
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+            builder.setView(dialogView);
+            builder.setPositiveButton("Close", null);
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            // Set Logout button action
+            logoutButton.setOnClickListener(v -> {
+                logoutUser();
+                dialog.dismiss(); // Close the dialog after logout
+            });
+
         } else {
             Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+
+
+
     private void logoutUser() {
         SharedPreferencesManager.clearUserData(requireContext());
         Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
 
-        // Create an Intent to start the HomeActivity (or whatever your homepage activity is named)
-        Intent intent = new Intent(requireContext(), MainActivity.class); // Replace HomeActivity with your actual homepage activity class name
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clear the back stack and start a new task
+        // Redirect to the main activity (Home)
+        Intent intent = new Intent(requireContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clear back stack
         startActivity(intent);
 
-        // Optionally, you can also call finish() if you want to close the current fragment/activity
+        // Optionally close the current fragment/activity
         requireActivity().finish();
     }
 
     private void loadUserProfilePicture() {
-        // Fetch the User object from SharedPreferences
-
-        // Get the User profile from SharedPreferencesManager
         User user = SharedPreferencesManager.getUserProfile(requireContext());
 
-        // Check if the user and imageUrl exist
         if (user != null && user.getImages() != null && !user.getImages().isEmpty()) {
-            // Get the first image URL from the images list
+            // Load the first image from the images list
             String imageUrl = user.getImages().get(0).getUrl();
 
-            // Use Glide to load the image URL into the ImageView
             Glide.with(this)
                     .load(imageUrl) // Load image from URL
-                    .placeholder(R.drawable.spotify_green_icon) // Default placeholder image
-                    .into(userPhoto); // Set image to the ImageView
+                    .placeholder(R.drawable.ic_person) // Default placeholder
+                    .circleCrop() // Crop the image to a circle
+                    .into(userPhoto); // Set the image to the ImageView
         } else {
-            // If no image URL exists, set a default image
+            // Fallback if no image is found
             Glide.with(this)
-                    .load(R.drawable.spotify_green_icon) // Default image
-                    .into(userPhoto); // Set default image to the ImageView
+                    .load(R.drawable.ic_person) // Default image
+                    .circleCrop()
+                    .into(userPhoto);
         }
-    }
+}
 }

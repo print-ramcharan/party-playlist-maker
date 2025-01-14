@@ -14,7 +14,7 @@ import com.squareup.picasso.Picasso
 
 class SearchAdapter(private val searchResults: MutableList<Any>) : RecyclerView.Adapter<SearchAdapter.SearchViewHolder>() {
 
-    // ViewHolder class to hold the views for each item
+
     class SearchViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val songTitle = view.findViewById<TextView>(R.id.songTitle)
         val songArtist = view.findViewById<TextView>(R.id.songArtist)
@@ -22,25 +22,25 @@ class SearchAdapter(private val searchResults: MutableList<Any>) : RecyclerView.
         val albumImage = view.findViewById<ImageView>(R.id.albumImage)
     }
 
-    // This method creates the ViewHolder for each item
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.search_item, parent, false)
         return SearchViewHolder(view)
     }
 
-    // This method binds the data to each item in the RecyclerView
+
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
         val item = searchResults[position]
 
-        // Check if the item is a Track or an Album
+
         if (item is Track) {
-            // Handling Track object
+
             holder.songTitle.text = item.name
             holder.songArtist.text = item.artists?.joinToString(", ") { it.name } ?: "Unknown Artist"
             holder.songAlbum.text = item.album?.name ?: "Unknown Album"
             Picasso.get().load(item.album?.images?.firstOrNull()?.url).into(holder.albumImage)
         } else if (item is Album) {
-            // Handling Album object
+
             holder.songTitle.text = item.name
             holder.songArtist.text = item.artists?.joinToString(", ") { it.name } ?: "Unknown Artist"
             holder.songAlbum.text = "Album"
@@ -48,15 +48,15 @@ class SearchAdapter(private val searchResults: MutableList<Any>) : RecyclerView.
         }
     }
 
-    // Returns the total number of items in the list
+
     override fun getItemCount(): Int {
         return searchResults.size
     }
 
-    // Method to update the list of items (either Tracks or Albums)
+
     fun updateList(newList: List<Any>) {
         searchResults.clear()
         searchResults.addAll(newList)
-        notifyDataSetChanged() // Notify the adapter that the data has changed
+        notifyDataSetChanged()
     }
 }

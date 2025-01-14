@@ -1,32 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipe_refresh_layout"
+    android:padding="10dp"
+    app:colorScheme="@array/refresh_spinner_colors"
     android:background="#FFFFFF">
 
-    <!-- Search Bar -->
-    <EditText
-        android:id="@+id/search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Search songs or artists"
-        android:padding="12dp"
-        android:background="@drawable/background_circle_white"
-        android:drawableStart="@drawable/ic_search_black"
-        android:drawablePadding="8dp"
-        android:inputType="text"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:layout_marginBottom="8dp"/>
-
-    <!-- RecyclerView for search results -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/search_results_recycler"
+    <!-- LinearLayout holding the content -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"/>
-</LinearLayout>
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search songs or artists"
+            android:padding="12dp"
+            android:background="@drawable/background_circle_white"
+            android:drawableStart="@drawable/ic_search_black"
+            android:drawablePadding="8dp"
+            android:inputType="text"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- RecyclerView for search results -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_results_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"/>
+    </LinearLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

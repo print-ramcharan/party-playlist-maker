@@ -53,24 +53,24 @@ class PlaylistAdapter(
             playlistNameTextView.text = playlist.name
             Log.d("PlaylistAdapter", "Playlist: ${playlist.images} \n ${playlist.name}")
 
-            // Check if the image has a valid URL and dimensions
+
             val imageUrl = playlist.images?.getOrNull(0)?.url
             Log.d("PlaylistAdapter", "Image URL: $imageUrl")
 
-            // Handle the case where no image URL is found
+
             if (imageUrl.isNullOrEmpty()) {
                 Glide.with(itemView.context)
-                    .load(R.drawable.ic_music_note_black) // Default placeholder image
+                    .load(R.drawable.ic_music_note_black)
                     .into(playlistImageView)
             } else {
                 Glide.with(itemView.context)
                     .load(imageUrl)
-                    .placeholder(R.drawable.ic_music_note_black) // Placeholder while loading
+                    .placeholder(R.drawable.ic_music_note_black)
                     .into(playlistImageView)
             }
 
             itemView.setOnClickListener {
-                onPlaylistClick(playlist) // Call the listener
+                onPlaylistClick(playlist)
             }
 
 

@@ -2,11 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/fragment_container_library"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@android:color/white"
-    android:padding="16dp"
-    android:spacing="16dp">
+    android:padding="16dp">
+
+    <!-- Toolbar -->
+    <TextView
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        android:textSize="35sp"
+        android:textColor="@color/black"
+        android:background="@color/white"
+        android:title="Library"
+        android:text="Create playlist"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:titleTextColor="@android:color/white" />
 
     <!-- Playlist Name EditText -->
     <EditText
@@ -15,8 +29,11 @@
         android:layout_height="wrap_content"
         android:hint="Playlist Name"
         android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/rounded_border" />
+        android:textColorHint="@color/black"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/rounded_border2"
+        android:elevation="2dp" />
 
     <!-- Playlist Description EditText -->
     <EditText
@@ -25,8 +42,35 @@
         android:layout_height="wrap_content"
         android:hint="Playlist Description"
         android:padding="12dp"
+
+        android:textColorHint="@color/black"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/rounded_border" />
+        android:background="@drawable/rounded_border2"
+        android:elevation="2dp" />
+
+    <!-- Collaborative Mode Switch -->
+    <Switch
+        android:id="@+id/collaborative_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Collaborative Mode"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/black"
+        android:background="@drawable/rounded_border2"
+        android:padding="12dp"
+        android:elevation="2dp" />
+
+    <!-- Private Mode Switch -->
+    <Switch
+        android:id="@+id/private_mode_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Private Mode"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_border2"
+        android:padding="12dp"
+        android:elevation="2dp" />
 
     <!-- Create Playlist Button -->
     <Button
@@ -34,16 +78,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Create Playlist"
-        android:textColor="@android:color/white"
-        android:background="@drawable/rounded_button_background"
+        android:textColor="@color/white"
+        android:background="@drawable/rounded_button_background2"
+        android:padding="12dp"
+        android:elevation="3dp"
         android:layout_marginBottom="16dp" />
 
     <!-- RecyclerView for Playlist Items -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/playlists_recycler_view_2"
+        android:id="@+id/playlists_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingTop="16dp"
         android:clipToPadding="false" />
+
 </LinearLayout>

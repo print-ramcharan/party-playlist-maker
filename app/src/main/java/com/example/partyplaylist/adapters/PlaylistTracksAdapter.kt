@@ -1,8 +1,6 @@
 package com.example.partyplaylist.adapters
 
 import android.app.AlertDialog
-import android.content.Context
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,20 +9,17 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
 import com.example.partyplaylist.R
-import com.example.partyplaylist.models.PlaylistTrack
 import com.example.partyplaylist.data.User
-import com.example.partyplaylist.models.Track
-import com.example.partyplaylist.utils.SharedPreferencesManager
+import com.example.partyplaylist.models.PlaylistTrack
 import com.example.partyplaylist.utils.SharedPreferencesManager.getAccessToken
 import com.google.gson.Gson
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -45,8 +40,11 @@ class PlaylistTracksAdapter(
 
     override fun onBindViewHolder(holder: PlaylistTrackViewHolder, position: Int) {
         Log.d("AdapterLifecycle", "onBindViewHolder called for position: $position")
+        tracks = tracks.sortedByDescending { it.voteCount }
         val track = tracks[position]
         holder.bind(track)
+//        val track = tracks[position]
+//        holder.bind(track)
     }
 
     override fun getItemCount(): Int {
@@ -54,8 +52,8 @@ class PlaylistTracksAdapter(
         return tracks.size
     }
     fun updatePlaylistTracks(newTracks: List<PlaylistTrack>) {
-        tracks = newTracks
-        notifyDataSetChanged() // Notifies the adapter that the data has changed
+        tracks = newTracks.sortedByDescending {it.voteCount  }
+        notifyDataSetChanged()
     }
 
     inner class PlaylistTrackViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -64,38 +62,38 @@ class PlaylistTracksAdapter(
         private val trackName: TextView = itemView.findViewById(R.id.track_name)
         private val trackArtist: TextView = itemView.findViewById(R.id.track_artist)
         private val voteButton: Button = itemView.findViewById(R.id.vote_button)
-        private val voteCount: TextView = itemView.findViewById(R.id.vote_count)
+//        private val voteCount: TextView = itemView.findViewById(R.id.vote_count)
         private val image: ImageView = itemView.findViewById(R.id.track_image)
         private val addedByImage: ImageView = itemView.findViewById(R.id.added_by_image)
 
         fun bind(track: PlaylistTrack) {
             Log.d("BindTrack", "Binding track: ${track.track.name}")
 
-            // Set track name and artist
+
             trackName.text = track.track.name
             trackArtist.text = track.track.artists?.joinToString(", ") { it.name }
 
-            // Log voter details
+
             Log.d("VotersInfo", "Voters: ${track.voters}")
 
-            // Update vote count
-            voteCount.text = track.voteCount.toString()
+
+            voteButton.text = track.voteCount.toString()+"\nVote"
 
             // Load album image
             val imageUrl = track.track.album?.images?.firstOrNull()?.url
             loadTrackImage(imageUrl)
 
-            // Load added by image
+
             val addedByImageUrl = track.track.added_by.images?.firstOrNull()?.url
 //            loadAddedByImage(addedByImageUrl)
             addedByImage.visibility = View.GONE
-            // Set up vote button click listener
+
             voteButton.setOnClickListener {
                 Log.d("VoteButton", "Vote button clicked for track: ${track.track.name}")
                 onVoteClicked(track)
             }
 
-            // Load voter images
+
             CoroutineScope(Dispatchers.Main).launch {
                 Log.d("track voters ",track.voters.toString() )
                 Log.d("track voters ",track.voteCount.toString() )

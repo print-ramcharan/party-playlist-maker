@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Image
@@ -42,6 +43,7 @@ class AlbumTracksFragment : Fragment() {
     private lateinit var albumArtistTextView: TextView
     private lateinit var tracksRecyclerView: RecyclerView
     private lateinit var trackAdapter: TrackAdapter
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,6 +63,11 @@ class AlbumTracksFragment : Fragment() {
         albumArtistTextView = view.findViewById(R.id.album_artist_text)
         tracksRecyclerView = view.findViewById(R.id.tracks_recyclerview)
         tracksRecyclerView.layoutManager = LinearLayoutManager(context)
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
+        swipeRefreshLayout.setOnRefreshListener {
+            fetchAndDisplayTracks(albumId)
+//            swipeRefreshLayout.isRefreshing = false
+        }
         trackAdapter = TrackAdapter(mutableListOf())
         tracksRecyclerView.adapter = trackAdapter
 
@@ -116,6 +123,7 @@ class AlbumTracksFragment : Fragment() {
                 Log.e("AlbumTracksFragment", "Failed to fetch tracks for album ID: $albumId")
             }
         }
+        swipeRefreshLayout.isRefreshing = false
     }
 
     private inner class TrackAdapter(private val tracks: MutableList<Track>) :

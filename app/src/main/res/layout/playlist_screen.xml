@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -13,44 +12,69 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <!-- Image Header with Gradient Overlay -->
-        <FrameLayout
+        <!-- CollapsingToolbarLayout for Collapsing Image -->
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="250dp">
+            android:layout_height="250dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <ImageView
-                android:id="@+id/playlist_image"
+            <!-- Image Header with Gradient Overlay -->
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/gradient_background"
-                android:scaleType="centerCrop"
-                android:background="@drawable/gradient"
-                android:contentDescription="Playlist Image" />
+                android:layout_height="250dp">
 
-            <!-- Gradient Overlay on the Image -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/gradient" />
+                <ImageView
+                    android:id="@+id/playlist_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/gradient_background"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Playlist Image" />
 
-            <!-- Playlist Name over the Image -->
-            <TextView
-                android:id="@+id/playlist_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Playlist Name"
-                android:textSize="28sp"
-                android:textColor="#FFFFFF"
-                android:fontFamily="sans-serif-medium"
-                android:textStyle="bold"
-                android:gravity="start"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="24dp"
-                android:layout_gravity="bottom"
-                android:maxLines="1"
-                android:ellipsize="end" />
-        </FrameLayout>
+                <!-- Gradient Overlay on the Image -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/gradient" />
+
+                <!-- Playlist Name over the Image -->
+                <TextView
+                    android:id="@+id/playlist_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Playlist Name"
+                    android:textSize="28sp"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="24dp"
+                    android:layout_gravity="bottom"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </FrameLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- SwipeRefreshLayout wrapping RecyclerView -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="0dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:colorScheme= "@array/refresh_spinner_colors">
+
+        <!-- RecyclerView to display tracks below the Collapsing Toolbar -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlist_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Circular Add Button with Shadow -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -58,19 +82,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_add"
-        android:layout_gravity="end"
-        android:layout_marginTop="220dp"
+        android:layout_gravity="end|bottom"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
         app:backgroundTint="@color/white"
         app:elevation="8dp"
         android:contentDescription="Add Button"
         android:tint="@color/black"
         android:stateListAnimator="@animator/fab_elevation_animator" />
 
-    <!-- RecyclerView to display tracks -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/playlist_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="250dp" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,44 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/white"
-    android:padding="0dp">
+    android:id="@+id/album_screen">
 
-
-    <ImageView
-        android:id="@+id/album_cover_image"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="@drawable/gradient_background"
-        android:scaleType="centerCrop" />
-
-    <TextView
-        android:id="@+id/album_name_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:paddingStart="15dp"
-        android:textStyle="bold"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        android:layout_marginTop="8dp"
-        android:text="Album Name" />
-
-    <TextView
-        android:id="@+id/album_artist_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:textAppearance="?attr/textAppearanceBody2"
-        android:text="Artist Name"
-        android:paddingStart="15dp"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Tracks RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tracks_recyclerview"
+    <!-- AppBarLayout for Image and Collapsing Title -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" />
-</LinearLayout>
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <!-- CollapsingToolbarLayout for Collapsing Image -->
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <!-- Image Header with Gradient Overlay -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="250dp">
+
+                <ImageView
+                    android:id="@+id/album_cover_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/gradient_background"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Album Cover" />
+
+                <!-- Gradient Overlay on the Image -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/gradient" />
+
+                <!-- Album Name over the Image -->
+                <TextView
+                    android:id="@+id/album_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Album Name"
+                    android:textSize="28sp"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="24dp"
+                    android:layout_gravity="bottom"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+                <TextView
+                    android:id="@+id/album_artist_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:text="Artist Name"
+                    android:textColor="#FFFFFF"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_gravity="bottom"
+                    android:maxLines="1"
+                    android:ellipsize="end"  />
+
+            </FrameLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- SwipeRefreshLayout wrapping RecyclerView -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- RecyclerView inside the SwipeRefreshLayout -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tracks_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

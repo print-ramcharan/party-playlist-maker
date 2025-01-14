@@ -1,5 +1,6 @@
 package com.example.partyplaylist
 
+//import com.example.partyplaylist.models.data.Track
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
@@ -13,11 +14,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.partyplaylist.adapters.SearchAdapter
-import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.data.SearchResponse
-//import com.example.partyplaylist.models.data.Track
 import com.example.partyplaylist.network.RetrofitClient
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.utils.TokenManager
@@ -28,7 +28,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
-import retrofit2.http.Query
 
 class SearchFragment : Fragment() {
     private var searchBar: EditText? = null
@@ -37,6 +36,7 @@ class SearchFragment : Fragment() {
     private var searchResults: MutableList<Any> = mutableListOf()  // Using Any to handle both Track and Album
     private var searchJob: Job? = null
     private lateinit var firebaseRepository: FirebaseRepository
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,18 +47,21 @@ class SearchFragment : Fragment() {
         // Initialize components
         searchBar = view.findViewById(R.id.search_bar)
         searchResultsRecycler = view.findViewById(R.id.search_results_recycler)
+
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
         firebaseRepository =  FirebaseRepository(requireContext())
         // Setup RecyclerView
+
         searchAdapter = SearchAdapter(searchResults)
         searchResultsRecycler?.layoutManager = LinearLayoutManager(context)
         searchResultsRecycler?.adapter = searchAdapter
-
-        firebaseRepository.getTracks { tracks ->
-            tracks?.let {
-                searchResults.addAll(it)
-                searchAdapter?.notifyDataSetChanged()
-            }
+//        swipeRefreshLayout.isRefreshing = true
+        refreshTracks()
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshTracks() // Call function to refresh the track list
         }
+
+
 
         // Search text listener
         searchBar?.addTextChangedListener(object : TextWatcher {
@@ -155,7 +158,17 @@ class SearchFragment : Fragment() {
             }
         }
     }
-
+    private fun refreshTracks() {
+        // Call performSearch again to refresh the tracks with an empty query
+        performSearch("") // Use "" to trigger a fresh search and reload the tracks
+        firebaseRepository.getTracks { tracks ->
+            tracks?.let {
+                searchResults.addAll(it)
+                searchAdapter?.notifyDataSetChanged()
+            }
+        }
+        swipeRefreshLayout.isRefreshing = false // Stop the refreshing animation
+    }
 }
 
 

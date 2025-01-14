@@ -1,20 +1,13 @@
 package com.example.partyplaylist.services
 
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import com.android.volley.toolbox.JsonObjectRequest
-import com.example.partyplaylist.models.Album
 import com.example.partyplaylist.models.Artist
-import com.example.partyplaylist.models.Track
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.utils.SharedPreferencesManager
-import com.example.partyplaylist.utils.SharedPreferencesManager.getAccessToken
 import com.example.partyplaylist.utils.SharedPreferencesManager.getUserId
-import okhttp3.Response
-import java.lang.reflect.Method
 
 @Suppress("RedundantWith")
 class SpotifySyncService : Service() {
@@ -120,7 +113,8 @@ private fun fetchAndSavePlaylists(userId: String) {
         response?.items?.let { playlists ->
             Log.d("SpotifySyncService", "Playlists fetched: ${playlists.size} playlists")
 
-            // Filter playlists where the user is the owner or a collaborator
+            // Filter playlists where the user is the owner or a listed collaborator
+
             val filteredPlaylists = playlists.filter { playlist ->
                 val isOwner = playlist.owner?.id == userId
                 val isCollaborative = playlist.collaborative
@@ -141,8 +135,6 @@ private fun fetchAndSavePlaylists(userId: String) {
         } ?: Log.e("SpotifySyncService", "Failed to fetch playlists")
     }
 }
-
-
 
 
     private fun fetchAndSaveLikedSongs(userId: String) {

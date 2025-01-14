@@ -1,5 +1,6 @@
 package com.example.partyplaylist
 
+
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
@@ -12,12 +13,11 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.example.partyplaylist.models.Artist
 import com.example.partyplaylist.data.Song
 import com.example.partyplaylist.repositories.FirebaseRepository
 import com.example.partyplaylist.services.MediaPlayerService
-import com.google.gson.Gson
 
 class ArtistDetailsFragment : Fragment() {
 
@@ -36,10 +36,11 @@ class ArtistDetailsFragment : Fragment() {
 
     private lateinit var artistName: String
     private lateinit var firebaseRepository: FirebaseRepository
-    private lateinit var recyclerView: RecyclerView
     private lateinit var songRecyclerView: RecyclerView
-    private lateinit var artistAdapter: ArtistAdapter
     private lateinit var songAdapter: SongAdapter
+    private lateinit var imageView: ImageView
+    private lateinit var textView: TextView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,18 +48,18 @@ class ArtistDetailsFragment : Fragment() {
     ): View? {
         Log.d(TAG, "ArtistDetailsFragment onCreateView")
         val view = inflater.inflate(R.layout.fragment_artist_details, container, false)
+        imageView = view.findViewById(R.id.artist_image)
+        textView = view.findViewById(R.id.artist_name)
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
+        swipeRefreshLayout.setOnRefreshListener {
+            fetchArtistDetails()
 
+        }
         // Initialize Firebase repository
         firebaseRepository = FirebaseRepository(requireContext())
 
         // Retrieve the artist name from the arguments
         artistName = arguments?.getString(ARG_ARTIST_NAME) ?: ""
-
-        // Set up RecyclerView for artist details
-        recyclerView = view.findViewById(R.id.artistRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        artistAdapter = ArtistAdapter()
-        recyclerView.adapter = artistAdapter
 
         // Set up RecyclerView for songs
         songRecyclerView = view.findViewById(R.id.songRecyclerView)
@@ -69,89 +70,40 @@ class ArtistDetailsFragment : Fragment() {
         songAdapter.setOnItemClickListener { song ->
             playSong(song)
         }
-        // Fetch artist details and update the RecyclerViews
+
+        // Fetch artist details and update UI
         fetchArtistDetails()
 
         return view
     }
+
     private fun playSong(song: Song) {
         val intent = Intent(requireContext(), MediaPlayerService::class.java).apply {
             action = "PLAY"
-            putExtra("SONG_URL", song.previewUrl) // Adjust as needed for the actual song URL
+            putExtra("SONG_URL", song.previewUrl)
             putExtra("SONG_TITLE", song.name)
         }
         requireContext().startService(intent)
     }
+
     private fun fetchArtistDetails() {
         // Fetch artist details from Firebase
         firebaseRepository.getArtistDetails(artistName) { artist ->
-            artist?.let { artist ->
-                // Convert artist object to JSON string for debugging
-                val gson = Gson()
-                val artistJson = gson.toJson(artist)
+            artist?.let {
+                // Update UI with artist details
+                textView.text = it.name
+                Glide.with(this).load(it.images.firstOrNull()?.url).into(imageView)
 
-                // Log the whole JSON response
-                Log.d(TAG, "Artist Response: $artistJson")
-
-                // Print individual fields from the response
-                Log.d(TAG, "Artist Name: ${artist.name}")
-                Log.d(TAG, "Artist Image URL: ${artist.images.firstOrNull()?.url}")
-                Log.d(TAG, "Artist Genres: ${artist.genres.joinToString()}")
-                Log.d(TAG, "Artist Popularity: ${artist.popularity}")
-                Log.d(TAG, "Artist Followers: ${artist.followers?.total}")
-
-                // Log all the songs associated with the artist
-                artist.Songs?.let { songs ->
-                    for (song in songs) {
-                        Log.d(TAG, "Song Title: ${song.name}")
-                        Log.d(TAG, "Song Album: ${song.album.name}") // Assuming 'album' has a 'name' field
-                        Log.d(TAG, "Song Duration: ${song.durationMs}")
-                        // Add more fields if needed
-                    }
-
-                    // Update the adapters with the fetched data
-                    artistAdapter.updateArtist(artist)
-                    songAdapter.updateSongs(artist.Songs)
+                // Update songs in the RecyclerView
+                it.Songs?.let { songs ->
+                    songAdapter.updateSongs(songs)
                 }
             } ?: run {
                 Log.d(TAG, "Artist not found")
             }
         }
+        swipeRefreshLayout.isRefreshing = false
     }
-
-    private inner class ArtistAdapter : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>() {
-
-        private var artist: Artist? = null
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArtistViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_artist, parent, false)
-            return ArtistViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ArtistViewHolder, position: Int) {
-            artist?.let { holder.bind(it) }
-        }
-
-        override fun getItemCount(): Int = if (artist != null) 1 else 0
-
-        fun updateArtist(newArtist: Artist) {
-            artist = newArtist
-            notifyDataSetChanged()
-        }
-
-        inner class ArtistViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val artistImageView: ImageView = itemView.findViewById(R.id.itemArtistImage)
-            private val artistNameTextView: TextView = itemView.findViewById(R.id.itemArtistName)
-
-            fun bind(artist: Artist) {
-                // Load image and text into the ViewHolder
-                Glide.with(itemView.context).load(artist.images.firstOrNull()?.url).into(artistImageView)
-                artistNameTextView.text = artist.name
-            }
-        }
-    }
-
     private inner class SongAdapter : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
         private var songs: List<Song> = emptyList()
@@ -191,4 +143,7 @@ class ArtistDetailsFragment : Fragment() {
             }
         }
     }
+
 }
+
+

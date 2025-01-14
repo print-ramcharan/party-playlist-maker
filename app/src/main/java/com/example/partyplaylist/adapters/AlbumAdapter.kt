@@ -28,7 +28,7 @@ class AlbumAdapter(private val albums: List<Album>,
             .load(album.images.firstOrNull()?.url)
             .into(holder.albumImage)
         holder.itemView.setOnClickListener {
-            clickListener(album) // Trigger the click listener
+            clickListener(album)
         }
     }
 

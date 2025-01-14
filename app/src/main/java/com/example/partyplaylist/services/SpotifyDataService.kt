@@ -158,91 +158,167 @@ class SpotifyDataService(private val context: Context) {
         val call: Call<TopTracksResponse> = spotifyService.getTopTracks("Bearer $accessToken")
         makeCall(call, callback)
     }
-    fun fetchPlaylists(callback: (PlaylistResponse2?) -> Unit) {
-        Log.d("SpotifyDataServicex", "Fetching playlists")
+//    fun fetchPlaylists(callback: (PlaylistResponse2?) -> Unit) {
+//        Log.d("SpotifyDataServicex", "Fetching playlists")
+//
+//        // Get the access token
+//        val accessToken = getAccessToken() ?: return refreshTokenIfNeeded { newToken ->
+//            if (newToken != null) {
+//                fetchPlaylists(callback) // Retry with new token
+//            } else {
+//                callback(null) // Return null if token is unavailable
+//            }
+//        }
+//
+//        CoroutineScope(Dispatchers.IO).launch {
+//            // Build the URL for the playlists endpoint
+//            val url = "https://api.spotify.com/v1/me/playlists?limit=50" // Endpoint for fetching user's playlists
+//            Log.d("SpotifyDataServicex", "Request URL: $url")
+//
+//            // Build the request with the access token in the Authorization header
+//            val request = Request.Builder()
+//                .url(url)
+//                .header("Authorization", "Bearer $accessToken")
+//                .build()
+//
+//            // Perform the request synchronously
+//            val client = OkHttpClient()
+//            try {
+//                val response = client.newCall(request).execute()
+//
+//                if (response.isSuccessful) {
+//                    val jsonResponse = response.body?.string()
+//                    Log.d("SpotifyDataServicex", "Response for playlists : $jsonResponse")
+//
+//                    if (jsonResponse != null) {
+//                        try {
+//                            // Parse the JSON response to a PlaylistResponse object
+//                            val playlistResponse = Gson().fromJson(jsonResponse, PlaylistResponse2::class.java)
+//
+//                            Log.d("SpotifyDataServicex", "Parsed PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+//                            // Fetch and add the tracks for each playlist
+//                            playlistResponse.items?.forEach { playlist ->
+//                                // Ensure the ownerId is correctly set from the response
+//                                val originalOwnerId = playlist.owner?.id
+//
+//                                // Check if the collaborators list is not null and mutable
+//                                if (playlist.collaborators == null) {
+//                                    playlist.collaborators = mutableListOf() // Initialize as a mutable list if it's null
+//                                }
+//
+//                                // Add the current user as a collaborator if they are not the owner
+//                                if (originalOwnerId != getUserId(context) ){
+//                                    playlist.collaborators = playlist.collaborators.toMutableList().apply {
+//                                        getUserProfile(context)?.let { add(it) }
+//                                    }
+//                                }
+//
+//                                // Fetch tracks and add them to the playlist object
+//                                fetchPlaylistTracks(playlist.id, accessToken) { playlistTracks ->
+//                                    playlist.tracks = playlistTracks // Add tracks to the playlist object
+//                                    Log.d("playlisttracks", playlistTracks.toString())
+//                                }
+//                            }
+//
+//                            // Save the playlists and tracks to Firebase
+////                            savePlaylistsToFirebase(playlistResponse, context)
+//                            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+//
+//
+//                            callback(playlistResponse) // Return the parsed PlaylistResponse
+//                        } catch (e: Exception) {
+//                            Log.e("SpotifyDataServicex", "Error parsing playlists response", e)
+//                            callback(null) // Return null on parsing error
+//                        }
+//                    } else {
+//                        callback(null) // Return null if no response body
+//                    }
+//                } else {
+//                    Log.e("SpotifyDataServicex", "Error: ${response.code}")
+//                    callback(null) // Return null on error response
+//                }
+//            } catch (e: IOException) {
+//                Log.e("SpotifyDataServicex", "Request failed", e)
+//                callback(null) // Return null if request fails
+//            }
+//        }
+//    }
+fun fetchPlaylists(callback: (PlaylistResponse2?) -> Unit) {
+    Log.d("SpotifyDataService", "Fetching playlists")
 
-        // Get the access token
-        val accessToken = getAccessToken() ?: return refreshTokenIfNeeded { newToken ->
-            if (newToken != null) {
-                fetchPlaylists(callback) // Retry with new token
-            } else {
-                callback(null) // Return null if token is unavailable
-            }
+    // Get the access token
+    val accessToken = getAccessToken() ?: return refreshTokenIfNeeded { newToken ->
+        if (newToken != null) {
+            fetchPlaylists(callback) // Retry with new token
+        } else {
+            callback(null) // Return null if token is unavailable
         }
+    }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            // Build the URL for the playlists endpoint
-            val url = "https://api.spotify.com/v1/me/playlists?limit=50" // Endpoint for fetching user's playlists
-            Log.d("SpotifyDataServicex", "Request URL: $url")
+    CoroutineScope(Dispatchers.IO).launch {
+        val url = "https://api.spotify.com/v1/me/playlists?limit=50"
+        Log.d("SpotifyDataService", "Request URL: $url")
 
-            // Build the request with the access token in the Authorization header
-            val request = Request.Builder()
-                .url(url)
-                .header("Authorization", "Bearer $accessToken")
-                .build()
+        val request = Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer $accessToken")
+            .build()
 
-            // Perform the request synchronously
-            val client = OkHttpClient()
-            try {
-                val response = client.newCall(request).execute()
+        val client = OkHttpClient()
+        try {
+            val response = client.newCall(request).execute()
 
-                if (response.isSuccessful) {
-                    val jsonResponse = response.body?.string()
-                    Log.d("SpotifyDataServicex", "Response for playlists : $jsonResponse")
+            if (response.isSuccessful) {
+                val jsonResponse = response.body?.string()
+                if (jsonResponse != null) {
+                    try {
+                        val playlistResponse = Gson().fromJson(jsonResponse, PlaylistResponse2::class.java)
+                        Log.d("SpotifyDataService", "Parsed PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+                        Log.d("SpotifyDataServicex", "Parsed PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+                        // Fetch and add the tracks for each playlist
+                        playlistResponse.items?.forEach { playlist ->
+                            // Ensure the ownerId is correctly set from the response
+                            val originalOwnerId = playlist.owner?.id
 
-                    if (jsonResponse != null) {
-                        try {
-                            // Parse the JSON response to a PlaylistResponse object
-                            val playlistResponse = Gson().fromJson(jsonResponse, PlaylistResponse2::class.java)
+                            // Check if the collaborators list is not null and mutable
+                            if (playlist.collaborators == null) {
+                                playlist.collaborators = mutableListOf() // Initialize as a mutable list if it's null
+                            }
 
-                            Log.d("SpotifyDataServicex", "Parsed PlaylistResponse: ${Gson().toJson(playlistResponse)}")
-                            // Fetch and add the tracks for each playlist
-                            playlistResponse.items?.forEach { playlist ->
-                                // Ensure the ownerId is correctly set from the response
-                                val originalOwnerId = playlist.owner?.id
-
-                                // Check if the collaborators list is not null and mutable
-                                if (playlist.collaborators == null) {
-                                    playlist.collaborators = mutableListOf() // Initialize as a mutable list if it's null
-                                }
-
-                                // Add the current user as a collaborator if they are not the owner
-                                if (originalOwnerId != getUserId(context) ){
-                                    playlist.collaborators = playlist.collaborators.toMutableList().apply {
-                                        getUserProfile(context)?.let { add(it) }
-                                    }
-                                }
-
-                                // Fetch tracks and add them to the playlist object
-                                fetchPlaylistTracks(playlist.id, accessToken) { playlistTracks ->
-                                    playlist.tracks = playlistTracks // Add tracks to the playlist object
-                                    Log.d("playlisttracks", playlistTracks.toString())
+                            // Add the current user as a collaborator if they are not the owner
+                            if (originalOwnerId != getUserId(context) ){
+                                playlist.collaborators = playlist.collaborators.toMutableList().apply {
+                                    getUserProfile(context)?.let { add(it) }
                                 }
                             }
 
-                            // Save the playlists and tracks to Firebase
-//                            savePlaylistsToFirebase(playlistResponse, context)
-                            Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
-
-
-                            callback(playlistResponse) // Return the parsed PlaylistResponse
-                        } catch (e: Exception) {
-                            Log.e("SpotifyDataServicex", "Error parsing playlists response", e)
-                            callback(null) // Return null on parsing error
+                            // Fetch tracks and add them to the playlist object
+                            fetchPlaylistTracks(playlist.id, accessToken) { playlistTracks ->
+                                playlist.tracks = playlistTracks // Add tracks to the playlist object
+                                Log.d("playlisttracks", playlistTracks.toString())
+                            }
                         }
-                    } else {
-                        callback(null) // Return null if no response body
+                        // Filter playlists where the user is the owner or a collaborator
+                        Log.d("Firebase", "PlaylistResponse: ${Gson().toJson(playlistResponse)}")
+
+                        callback(playlistResponse)
+                    } catch (e: Exception) {
+                        Log.e("SpotifyDataService", "Error parsing playlists response", e)
+                        callback(null)
                     }
                 } else {
-                    Log.e("SpotifyDataServicex", "Error: ${response.code}")
-                    callback(null) // Return null on error response
+                    callback(null)
                 }
-            } catch (e: IOException) {
-                Log.e("SpotifyDataServicex", "Request failed", e)
-                callback(null) // Return null if request fails
+            } else {
+                Log.e("SpotifyDataService", "Error: ${response.code}")
+                callback(null)
             }
+        } catch (e: IOException) {
+            Log.e("SpotifyDataService", "Request failed", e)
+            callback(null)
         }
     }
+}
 
     // Function to fetch tracks for a specific playlist
     suspend fun fetchPlaylistTracks(playlistId: String, accessToken: String, callback: (PlaylistTracks) -> Unit) {

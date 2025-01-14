@@ -2,8 +2,19 @@ package com.example.partyplaylist.network
 
 import AlbumResponse
 import RecentlyPlayedResponse
-import com.example.partyplaylist.models.*
 import com.example.partyplaylist.data.User
+import com.example.partyplaylist.models.Album
+import com.example.partyplaylist.models.AlbumsResponse
+import com.example.partyplaylist.models.Artist
+import com.example.partyplaylist.models.ArtistResponse
+import com.example.partyplaylist.models.LikedSongs
+import com.example.partyplaylist.models.PlaylistCreateRequest
+import com.example.partyplaylist.models.PlaylistResponse
+import com.example.partyplaylist.models.PlaylistResponse2
+import com.example.partyplaylist.models.TopArtistsResponse
+import com.example.partyplaylist.models.TopTracksResponse
+import com.example.partyplaylist.models.Track
+import com.example.partyplaylist.models.TrackResponse
 import com.example.partyplaylist.models.data.SearchResponse
 import retrofit2.Call
 import retrofit2.http.Body
@@ -24,8 +35,14 @@ interface SpotifyService {
     @GET("v1/me")
     fun getUserProfile(@Header("Authorization") token: String): Call<User>
 
+//    @GET("v1/me/playlists")
+//    fun getPlaylists(@Header("Authorization") token: String): Call<PlaylistResponse>
+
+
     @GET("v1/me/playlists")
-    fun getPlaylists(@Header("Authorization") token: String): Call<PlaylistResponse>
+    fun getUserPlaylists(
+        @Header("Authorization") authHeader: String
+    ): Call<PlaylistResponse2>
 
     @GET("v1/me/top/artists")
     fun getTopArtists(@Header("Authorization") authHeader: String?): Call<TopArtistsResponse>
@@ -77,9 +94,14 @@ interface SpotifyService {
     @POST("v1/users/{user_id}/playlists")
     fun createPlaylist(
         @Path("user_id") userId: String,
+        @Query("collaborative") collaborative: Boolean,
+//        @Query("private") private: Boolean,
+        @Query("public") public :Boolean,
         @Header("Authorization") authHeader: String,
         @Body playlistCreateRequest: PlaylistCreateRequest
     ): Call<PlaylistResponse>
+
+
     @GET("v1/me/albums")
     fun getSavedAlbums(
         @Header("Authorization") authHeader: String

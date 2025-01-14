@@ -3,7 +3,6 @@ package com.example.partyplaylist
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.example.partyplaylist.utils.TokenManager
 
@@ -26,7 +25,7 @@ class MainActivity : ComponentActivity() {
                 // Token refresh failed, proceed to login activity
                 Handler().postDelayed({
                     // Start the login activity
-                    val intent = Intent(this, LoginMultiActivity::class.java)
+                    val intent = Intent(this, SpotifyLoginActivity::class.java)
                     startActivity(intent)
                     finish() // Close the MainActivity
                 }, 2000)
